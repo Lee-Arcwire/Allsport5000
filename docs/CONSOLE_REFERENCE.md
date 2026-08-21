@@ -89,6 +89,51 @@ Codes on the insert: 4000 SOG console, 4401 w/o SOG, 4402 w/ SOG, 4102 LC→BB,
 4103 Series 3000, 4104 Series 2500, 4105 PLYR/FL/PTS, 4601 HK→FB, 4602 LC→FB,
 4701 HK→SOC, 4702 LC→SOC.
 
+## Team name insert LL-2441 (DWG-125290, PDF p.207)
+
+A 10 × 4 QWERTY pad that replaces the sport insert while a team name is being
+entered. Digits are **not** on it — they come from the console's own number
+pad, which the insert doesn't cover.
+
+| | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 16 COL | 32 COL | 48 COL | 64 COL | 7 ROWS | 8 ROWS | SINGLE STROKE | DOUBLE STROKE | & / - | SHIFT |
+| 2 | Q | W | E | R | T | Y | U | I | O | P |
+| 3 | A | S | D | F | G | H | J | K | L | ' |
+| 4 | Z | X | C | V | B | N | M | , | . | SPACE |
+
+Bracket labels on the printed insert group columns 1–4 as **WIDTH**, 5–6 as
+**HEIGHT** and 7–8 as **FONT**.
+
+From Team Name Entry (p.19):
+
+- **WIDTH** — the module's pixel columns: 16, 32, 48 or 64. Default 48.
+- **HEIGHT** — 7 or 8 rows. Default 8.
+- **FONT** — single or double stroke (double is bold). Default single.
+  Home and guest can be set differently to fit different name lengths.
+- **SHIFT** before a letter selects the **Alternate Narrow** face; the console
+  shows it as a lowercase letter on the LCD.
+- **SHIFT** then a stroke key sets inter-character spacing — two columns for
+  DOUBLE, one for SINGLE.
+- Team name is up to **15 characters**, abbreviation up to **10**.
+
+The manual tabulates every character's pixel width per face (p.19). Single
+stroke standard runs 3–5 px for 8-high modules (I narrowest, M/W/Q widest);
+double stroke adds about 2 px per character.
+
+Flow, from the hockey Roster menu (p.80):
+
+```
+MENU- ROSTER / SELECT HOME   -> ENTER
+HOME- TEAM NAME / _OME  *    -> type up to 15 chars, ENTER
+HOME- TEAM ABBR / _OME  *    -> type up to 10 chars, ENTER
+                             -> reinsert the HOCKEY (LL-2436) insert
+```
+
+The `_` is the cursor sitting on a character, so a field opened over the
+existing name reads `_OME`. Entry overwrites from the cursor, which is why
+retyping a name straight over the old one is the normal case.
+
 ## Standard keys (p.7–10, Quick Reference p.223)
 
 | Cluster | Keys |

@@ -19,7 +19,9 @@ display in the middle, the control keypad on the bottom.
 - **Keypad** — the LL-2436 hockey insert (HOME / game / GUEST key groups) plus
   the console's fixed standard keys: number pad, menu navigation diamond,
   EDIT, horn control and clock control. Geometry follows insert drawing
-  DWG-124218 and Figure 3 of the manual.
+  DWG-124218 and Figure 3 of the manual. The tab on the left of the deck
+  swaps the insert for the LL-2441 team-name keyboard, the way the physical
+  insert slides in and out.
 
 ## Run in a browser
 
@@ -46,7 +48,18 @@ first), or run the `serve` task on its own.
 | `↑ ↓ ← →` | menu navigation |
 | `M` / `E` | MENU / EDIT |
 
+During team name entry the keyboard types into the name instead: letters,
+digits, space and `& ' , - .` all go in, `Shift`+letter selects the narrow
+face, `Backspace` steps back a character, and `Esc` blanks the field (twice
+to leave it unchanged).
+
 ## What's emulated
+
+Team names, entered through MENU > ROSTER on the LL-2441 keyboard and drawn
+as real lit pixels on the board's message centers — the WIDTH (16/32/48/64
+columns), HEIGHT (7/8 rows) and FONT (single/double stroke) keys all change
+what you see, and a name too long for the module is clipped exactly as the
+board would clip it.
 
 Main clock (count up/down, tenths under a minute, auto horn at period end),
 period, score / shots on goal / saves for both teams, player penalties
@@ -59,10 +72,9 @@ SETTINGS with the manual's factory defaults (p.84).
 Settings persist to `localStorage`, and the game in progress is snapshotted so
 the console's `PREV CODE nnnn / RESUME GAME?` power-up prompt works.
 
-Not wired yet: the Display and Dimming submenus beyond brightness, typing new
-team names into the message centers (on the real console that needs the
-LL-2441 Team Name insert, so it wants an insert-swap mode here), radio channel
-settings, and the lacrosse/handball-only keys from insert 0G-1084219.
+Not wired yet: the Display and Dimming submenus beyond brightness, radio
+channel settings, and the lacrosse/handball-only keys from insert 0G-1084219.
+Team abbreviations are stored but have nowhere to show on this board.
 
 ## Reference material
 

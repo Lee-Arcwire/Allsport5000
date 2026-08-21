@@ -212,18 +212,28 @@ html, body {
   text-align: center;
 }
 
-.tnmc-text {
-  display: block;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(5px, 1.85cqi, 23px);
-  font-weight: 400;
-  letter-spacing: 0.10em;
-  line-height: 1.15;
-  white-space: nowrap;
-  color: var(--led-amber-on);
-  text-shadow:
-    0 0 0.10em var(--led-amber-glow),
-    0 0 0.22em var(--led-amber-glow);
+/* The matrix itself: --tnmc-cols x --tnmc-rows LED cells, set by app.js
+   from the module's WIDTH / HEIGHT settings. Cell size follows from the
+   strip width, so a 16-column module has big coarse pixels and a 64-column
+   one fine ones, exactly as the hardware would. */
+.tnmc-matrix {
+  display: grid;
+  grid-template-columns: repeat(var(--tnmc-cols, 48), 1fr);
+  grid-auto-rows: 1fr;
+  aspect-ratio: var(--tnmc-cols, 48) / var(--tnmc-rows, 8);
+  /* No grid gap: at 48 columns even a 1% gap would eat the whole width.
+     Each cell paints its own dot with the space built into the gradient. */
+  gap: 0;
+  filter: drop-shadow(0 0 1px var(--led-amber-glow));
+}
+
+.tnmc-matrix i {
+  background-image: radial-gradient(circle at 50% 50%,
+    var(--led-amber-off) 0 46%, transparent 50%);
+}
+.tnmc-matrix i.on {
+  background-image: radial-gradient(circle at 50% 50%,
+    var(--led-amber-on) 0 46%, transparent 50%);
 }
 
 /* ---- Digit windows (shared by amber & red variants) ---- */
@@ -433,6 +443,10 @@ html, body {
 }
 
 /* Sport insert (LL-2436): legend column + HOME / game / GUEST key groups */
+/* An insert that isn't fitted is out of the console: the display: flex
+   below would otherwise beat the browser's [hidden] rule. */
+.insert[hidden] { display: none; }
+
 .insert {
   display: flex;
   align-items: stretch;
@@ -532,9 +546,72 @@ html, body {
 /* Each insert / standard cluster is a fixed 3-column grid of 4 rows, which
    is how the console face is laid out; empty cells stay empty. */
 #keys-home, #keys-game, #keys-guest, #keys-num { grid-template-columns: repeat(3, 1fr); }
+#keys-teamname                                 { grid-template-columns: repeat(10, 1fr); }
 #keys-nav                                      { grid-template-columns: repeat(3, 1fr); }
 #keys-horn                                     { grid-template-columns: auto 1.6fr; }
 #keys-clock                                    { grid-template-columns: 1fr 1.5fr; }
+
+/* ---- The insert pull tab ----
+   Stands in for the tab that extends from the left side of the console;
+   clicking it swaps the fitted insert. */
+
+.insert-tab {
+  all: unset;
+  align-self: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(4px, 0.85cqi, 9px);
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: var(--con-ink);
+  background: linear-gradient(90deg, #e9eaec 0%, #cfd2d5 100%);
+  border: 1px solid #8d9195;
+  border-radius: 4px 0 0 4px;
+  padding: clamp(4px, 1.2cqi, 16px) clamp(1px, 0.35cqi, 4px);
+  cursor: pointer;
+}
+.insert-tab:hover { background: linear-gradient(90deg, #fff 0%, #dcdfe2 100%); }
+.insert-tab:focus-visible { outline: 2px solid #2a6df4; outline-offset: 1px; }
+
+/* ---- Team name insert (LL-2441) ---- */
+
+.insert-tn { flex: 1 1 auto; }
+
+.insert-legend-tn { max-width: clamp(52px, 13cqi, 140px); }
+
+.insert-note {
+  font-size: clamp(3.5px, 0.78cqi, 8px);
+  line-height: 1.35;
+  color: #3a3d42;
+}
+
+.tn-pad {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1px, 0.3cqi, 4px);
+}
+
+/* Bracket labels over the WIDTH / HEIGHT / FONT groups, matching the
+   printed insert: they span columns 1-4, 5-6 and 7-8 of the pad. */
+.tn-brackets {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: clamp(2px, 0.42cqi, 5px);
+  font-size: clamp(4px, 0.95cqi, 11px);
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: var(--con-ink);
+  text-align: center;
+}
+.tn-bracket {
+  border-bottom: 1px solid var(--con-ink);
+  padding-bottom: 1px;
+}
+.tn-bracket-width  { grid-column: 1 / span 4; }
+.tn-bracket-height { grid-column: 5 / span 2; }
+.tn-bracket-font   { grid-column: 7 / span 2; }
 
 /* ---- Standard-key clusters ---- */
 

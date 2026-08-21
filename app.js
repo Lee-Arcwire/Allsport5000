@@ -116,10 +116,20 @@
       countDown:       true,       // Count Up/Down (standard key)
       autoHorn:        true,       // Auto Horn (standard key)
       dimming:         'High',     // Dimming Menu
+      // Team names, abbreviations and the message-center module settings
+      // each team's TNMC is configured for (insert LL-2441; defaults are
+      // the manual's: 48 columns, 8 rows, single stroke).
       homeName:        'HOME',
       guestName:       'GUEST',
+      homeAbbr:        'HOME',
+      guestAbbr:       'GUEST',
+      homeTnmc:        { columns: 48, rows: 8, font: 'single', gap: 1 },
+      guestTnmc:       { columns: 48, rows: 8, font: 'single', gap: 1 },
     };
   }
+
+  const MAX_TEAM_NAME = 15;
+  const MAX_TEAM_ABBR = 10;
 
   // ---------------------------------------------------------------
   // State
@@ -164,6 +174,11 @@
     screen: null,                      // active LCD prompt, or null
     buffer: '',                        // digits typed into the screen
     editArmed: false,                  // <EDIT> pressed, awaiting a key
+    // Which sport insert is in the console: the hockey keypad (LL-2436) or
+    // the team-name keyboard (LL-2441). Team name entry swaps it in and
+    // out, and the tab on the left of the deck swaps it by hand.
+    insert: 'hockey',
+    shift: false,                      // one-shot <SHIFT> on the LL-2441
     // Set once <START> has been pressed this period; gates the "ADJUST
     // PENALTY TIMERS Y/N?" prompt after the main clock is set.
     clockHasRun: false,
@@ -185,8 +200,10 @@
     period:    $('period'),
     time:      $('time'),
     timeBg:    $('time-bg'),
-    homeName:  $('home-name'),
-    guestName: $('guest-name'),
+    tnmc: {
+      home:  $('home-tnmc'),
+      guest: $('guest-tnmc'),
+    },
     lcd1:      $('lcd-line1'),
     lcd2:      $('lcd-line2'),
     activeCode: $('active-code'),
@@ -410,6 +427,155 @@
   const teamLabel = (team) => (team === 'home' ? 'HOME' : 'GUEST');
 
   // ---------------------------------------------------------------
+  // Team Name Message Center (TNMC)
+  // ---------------------------------------------------------------
+  // The board carries an LED matrix above each score. The console's WIDTH /
+  // HEIGHT / FONT keys (insert LL-2441) describe the module that's fitted:
+  // 16 / 32 / 48 / 64 pixel columns, 7 or 8 rows, single or double stroke.
+  // Names are rendered here as actual lit pixels so those settings show.
+  //
+  // Glyphs are 5x7 cells trimmed to their ink, which gives the proportional
+  // advances the manual tabulates on p.19 (I is narrow, M and W are full
+  // width). Double stroke dilates each glyph one column to the right, the
+  // console's way of making a bold face.
+
+  const GLYPH_ROWS = 7;
+
+  const FONT = {
+    'A': '01110/10001/10001/11111/10001/10001/10001',
+    'B': '11110/10001/10001/11110/10001/10001/11110',
+    'C': '01110/10001/10000/10000/10000/10001/01110',
+    'D': '11110/10001/10001/10001/10001/10001/11110',
+    'E': '11111/10000/10000/11110/10000/10000/11111',
+    'F': '11111/10000/10000/11110/10000/10000/10000',
+    'G': '01110/10001/10000/10111/10001/10001/01110',
+    'H': '10001/10001/10001/11111/10001/10001/10001',
+    'I': '11100/01000/01000/01000/01000/01000/11100',
+    'J': '00001/00001/00001/00001/10001/10001/01110',
+    'K': '10001/10010/10100/11000/10100/10010/10001',
+    'L': '10000/10000/10000/10000/10000/10000/11111',
+    'M': '10001/11011/10101/10001/10001/10001/10001',
+    'N': '10001/11001/10101/10011/10001/10001/10001',
+    'O': '01110/10001/10001/10001/10001/10001/01110',
+    'P': '11110/10001/10001/11110/10000/10000/10000',
+    'Q': '01110/10001/10001/10001/10101/10011/01101',
+    'R': '11110/10001/10001/11110/10100/10010/10001',
+    'S': '01110/10001/10000/01110/00001/10001/01110',
+    'T': '11111/00100/00100/00100/00100/00100/00100',
+    'U': '10001/10001/10001/10001/10001/10001/01110',
+    'V': '10001/10001/10001/10001/10001/01010/00100',
+    'W': '10001/10001/10001/10101/10101/11011/10001',
+    'X': '10001/10001/01010/00100/01010/10001/10001',
+    'Y': '10001/10001/01010/00100/00100/00100/00100',
+    'Z': '11111/00001/00010/00100/01000/10000/11111',
+    '0': '01110/10001/10011/10101/11001/10001/01110',
+    '1': '00100/01100/00100/00100/00100/00100/01110',
+    '2': '01110/10001/00001/00010/00100/01000/11111',
+    '3': '11111/00010/00110/00001/00001/10001/01110',
+    '4': '00010/00110/01010/10010/11111/00010/00010',
+    '5': '11111/10000/11110/00001/00001/10001/11110',
+    '6': '00110/01000/10000/11110/10001/10001/01110',
+    '7': '11111/00001/00010/00100/01000/01000/01000',
+    '8': '01110/10001/10001/01110/10001/10001/01110',
+    '9': '01110/10001/10001/01111/00001/00010/01100',
+    '&': '01100/10010/10010/01100/10101/10010/01101',
+    "'": '00100/00100/00100/00000/00000/00000/00000',
+    ',': '00000/00000/00000/00000/00100/00100/01000',
+    '-': '00000/00000/00000/11111/00000/00000/00000',
+    '.': '00000/00000/00000/00000/00000/01100/01100',
+    '/': '00001/00010/00010/00100/01000/01000/10000',
+  };
+
+  // Alternate Narrow (SHIFT + letter, shown lowercase on the LCD): the
+  // manual's narrow face, approximated by dropping the glyph's last column.
+  function glyphColumns(ch, opts) {
+    const raw = FONT[ch.toUpperCase()];
+    if (!raw) return null;                     // space, or unsupported
+    const rows = raw.split('/');
+    let cols = [];
+    for (let c = 0; c < 5; c++) {
+      cols.push(rows.map(r => r[c] === '1'));
+    }
+    // Trim blank columns on both sides so advances are proportional.
+    while (cols.length && cols[0].every(v => !v)) cols.shift();
+    while (cols.length && cols[cols.length - 1].every(v => !v)) cols.pop();
+
+    const narrow = ch === ch.toLowerCase() && ch !== ch.toUpperCase();
+    if (narrow && cols.length > 3) cols = cols.slice(0, cols.length - 1);
+
+    if (opts.font === 'double') {
+      // Dilate right by one column: bold, one pixel wider.
+      const out = [cols[0] ? cols[0].slice() : []];
+      for (let c = 1; c < cols.length; c++) {
+        out.push(cols[c].map((v, r) => v || cols[c - 1][r]));
+      }
+      const last = cols[cols.length - 1];
+      if (last) out.push(last.slice());
+      cols = out;
+    }
+    return cols;
+  }
+
+  // Lay text out into a columns x rows pixel grid, centred when it fits and
+  // clipped at the right edge when it doesn't - exactly what the board does
+  // when a name is too long for the module.
+  function tnmcGrid(text, opts) {
+    const cols = [];
+    const gap = opts.gap || 1;
+    const chars = [...String(text)];
+    chars.forEach((ch, i) => {
+      if (i > 0) for (let g = 0; g < gap; g++) cols.push(null);
+      if (ch === ' ') {
+        for (let g = 0; g < 2; g++) cols.push(null);
+        return;
+      }
+      const glyph = glyphColumns(ch, opts);
+      if (glyph) glyph.forEach(c => cols.push(c));
+    });
+
+    const width = opts.columns;
+    const pad = Math.max(0, Math.floor((width - cols.length) / 2));
+    const grid = [];
+    for (let r = 0; r < opts.rows; r++) {
+      const row = [];
+      for (let c = 0; c < width; c++) {
+        const src = cols[c - pad];
+        // An 8-row module lights the top 7 and leaves the bottom row dark,
+        // which is where a descender would go.
+        row.push(!!(src && r < GLYPH_ROWS && src[r]));
+      }
+      grid.push(row);
+    }
+    return grid;
+  }
+
+  // Rebuilding 384 dots every frame would be wasteful, so each strip is
+  // only redrawn when its text or module settings actually change.
+  const tnmcCache = { home: '', guest: '' };
+
+  function renderTnmc(team) {
+    const host = els.tnmc[team];
+    if (!host) return;
+    const cfg = state.settings[`${team}Tnmc`];
+    const text = state.settings[`${team}Name`];
+    const sig = `${text}|${cfg.columns}|${cfg.rows}|${cfg.font}|${cfg.gap}`;
+    if (tnmcCache[team] === sig) return;
+    tnmcCache[team] = sig;
+
+    const grid = tnmcGrid(text, cfg);
+    host.style.setProperty('--tnmc-cols', String(cfg.columns));
+    host.style.setProperty('--tnmc-rows', String(cfg.rows));
+    host.replaceChildren();
+    for (const row of grid) {
+      for (const lit of row) {
+        const dot = document.createElement('i');
+        if (lit) dot.className = 'on';
+        host.appendChild(dot);
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------
   // Game lifecycle
   // ---------------------------------------------------------------
 
@@ -460,6 +626,17 @@
   }
 
   function closeScreen() {
+    // Leaving team name entry puts the hockey insert back in the console,
+    // the manual's "Reinsert the HOCKEY (LL-2436) insert to continue".
+    if (state.screen && state.screen.kind === 'team-name') {
+      // Escaping instead of committing puts the previous name back on the
+      // board, undoing the live preview.
+      if (!state.screen.committed) {
+        state.settings[`${state.screen.team}Name`] = state.screen.original;
+      }
+      state.insert = 'hockey';
+      state.shift = false;
+    }
     state.screen = null;
     state.buffer = '';
   }
@@ -705,6 +882,125 @@
     state.shot.running = false;
   }
 
+  // ---- Team name entry (insert LL-2441) -------------------------
+
+  // MENU > ROSTER > SELECT HOME/GUEST walks TEAM NAME then TEAM ABBR. The
+  // team-name insert is swapped in for the duration.
+  function openTeamName(team) {
+    state.insert = 'teamname';
+    state.shift = false;
+    open({
+      kind: 'team-name',
+      team,
+      field: 'name',
+      text: state.settings[`${team}Name`],
+      cursor: 0,
+      // Typing previews on the board immediately, so the name as it was is
+      // kept in order to put it back if the operator escapes instead of
+      // pressing ENTER.
+      original: state.settings[`${team}Name`],
+      committed: false,
+    });
+  }
+
+  function teamNameMax(s) {
+    return s.field === 'name' ? MAX_TEAM_NAME : MAX_TEAM_ABBR;
+  }
+
+  // Characters come from the LL-2441 letter keys, the number pad, and the
+  // punctuation keys. SHIFT selects the Alternate Narrow face, which the
+  // console shows as a lowercase letter on the LCD.
+  //
+  // Entry overwrites: the field opens with the cursor on the first
+  // character of the existing name (the manual's "_OME"), so typing a new
+  // name straight over the old one is the normal case.
+  function typeChar(ch) {
+    const s = state.screen;
+    if (!s || s.kind !== 'team-name') return;
+    if (state.shift && /[a-z]/i.test(ch)) ch = ch.toLowerCase();
+    else ch = ch.toUpperCase();
+    state.shift = false;
+
+    const max = teamNameMax(s);
+    if (s.cursor >= max) return;
+    const chars = [...s.text];
+    if (s.cursor > chars.length) s.cursor = chars.length;
+    chars[s.cursor] = ch;
+    s.text = chars.join('');
+    s.cursor = Math.min(max, s.cursor + 1);
+    applyTeamNameLive();
+  }
+
+  // <CLEAR> blanks the field, and a second press escapes - the console's
+  // documented two-press escape.
+  function deleteChar() {
+    const s = state.screen;
+    if (s.text.length) {
+      s.text = '';
+      s.cursor = 0;
+      applyTeamNameLive();
+      return true;
+    }
+    return false;
+  }
+
+  // Keyboard Backspace has no console equivalent, but it's what a browser
+  // user reaches for: step back one character.
+  function backspaceChar() {
+    const s = state.screen;
+    if (!s || s.kind !== 'team-name' || s.cursor === 0) return;
+    const chars = [...s.text];
+    chars.splice(s.cursor - 1, 1);
+    s.text = chars.join('');
+    s.cursor--;
+    applyTeamNameLive();
+  }
+
+  // The board updates as you type, like the real TNMC.
+  function applyTeamNameLive() {
+    const s = state.screen;
+    if (s.field === 'name') state.settings[`${s.team}Name`] = s.text;
+  }
+
+  function commitTeamName() {
+    const s = state.screen;
+    if (s.field === 'name') {
+      state.settings[`${s.team}Name`] = s.text;
+      saveSettings();
+      s.field = 'abbr';
+      s.text = state.settings[`${s.team}Abbr`];
+      s.cursor = 0;
+      return;
+    }
+    state.settings[`${s.team}Abbr`] = s.text;
+    s.committed = true;
+    saveSettings();
+    closeScreen();
+  }
+
+  // WIDTH / HEIGHT / FONT apply to the team being edited (each TNMC can be
+  // set differently), or to both when pressed outside name entry.
+  function setTnmc(prop, value) {
+    const s = state.screen;
+    const teams = (s && s.kind === 'team-name') ? [s.team] : ['home', 'guest'];
+    for (const team of teams) state.settings[`${team}Tnmc`][prop] = value;
+    saveSettings();
+    if (!s || s.kind !== 'team-name') {
+      flash(row('TEAM NAME'), row(String(prop).toUpperCase(), String(value).toUpperCase()));
+    }
+  }
+
+  // SHIFT + SINGLE / DOUBLE STROKE sets the inter-character spacing instead
+  // of the face (manual note, p.19).
+  function pressStroke(font) {
+    if (state.shift) {
+      state.shift = false;
+      setTnmc('gap', font === 'double' ? 2 : 1);
+      return;
+    }
+    setTnmc('font', font);
+  }
+
   // ---- Auto horn / interval timer -------------------------------
 
   function pressAutoHorn() {
@@ -728,7 +1024,11 @@
     }
     const t = state[team];
     t[def.key] = Math.max(0, Math.min(def.max, t[def.key] + delta));
-    flash(row(`${def.label}- ${delta > 0 ? '+' : ''}${delta}`),
+    // "TEAM SCORE- +1" fits 16 columns; "SHOTS ON GOAL- +1" doesn't, so the
+    // dash is dropped rather than letting the line clip.
+    const sign = `${delta > 0 ? '+' : ''}${delta}`;
+    const head = `${def.label}- ${sign}`;
+    flash(head.length <= LCD_COLS ? row(head) : row(def.label, sign),
           row(teamLabel(team), String(t[def.key])));
     saveGame();
   }
@@ -824,11 +1124,9 @@
     { key: 'switchOutput',     type: 'choice', line1: 'SWITCH OUTPUT',   label: '1-CLK 2-HORN', choices: [1, 2] },
   ];
 
+  // "Press <MENU> again at any time to return to the game in progress."
   function pressMenu() {
-    if (state.screen && (state.screen.kind === 'menu' || state.screen.kind === 'edit-settings')) {
-      closeScreen();
-      return;
-    }
+    if (state.screen) { closeScreen(); return; }
     open({ kind: 'menu', idx: 0 });
   }
 
@@ -845,12 +1143,8 @@
       case 'dimming':
         open({ kind: 'dimming' });
         return;
-      case 'home-roster':
-      case 'guest-roster':
-        // The TNMC name entry needs the LL-2441 Team Name insert; the
-        // console can only re-enter names with that insert fitted.
-        flash(row(`${item.id === 'home-roster' ? 'HOME' : 'GUEST'}- TEAM NAME`), row('USE LL-2441'));
-        break;
+      case 'home-roster':  openTeamName('home');  return;
+      case 'guest-roster': openTeamName('guest'); return;
       case 'display':
         flash(row('DISPLAY MENU'), row('NOT WIRED YET'));
         break;
@@ -916,6 +1210,10 @@
 
     // Y/N and 1/2 prompts consume the digit as a choice.
     switch (s.kind) {
+      case 'team-name':
+        // Digits are part of a team name, not a numeric entry.
+        typeChar(d);
+        return;
       case 'count-dir':
         if (d === '1' || d === '2') {
           state.settings.countDown = d === '2';
@@ -1057,6 +1355,7 @@
         else closeScreen();
         break;
       }
+      case 'team-name':     commitTeamName(); break;
       case 'menu':          menuSelect(); break;
       case 'edit-settings': commitSetting(); break;
       default:              closeScreen(); break;
@@ -1074,6 +1373,11 @@
     if (state.buffer) { state.buffer = ''; return; }
 
     switch (s.kind) {
+      // In name entry CLEAR is a backspace until the field is empty, then
+      // it escapes.
+      case 'team-name':
+        if (!deleteChar()) closeScreen();
+        return;
       case 'adjust-penalties': adjustPenalties(false); return;
       case 'boot-resume':      open({ kind: 'select-code' }); return;
       case 'recall-shot':      closeScreen(); return;
@@ -1098,6 +1402,20 @@
 
   function pressUp()   { moveScreen(-1); }
   function pressDown() { moveScreen(+1); }
+
+  // Left / right walk the same lists as up / down, except during name entry
+  // where they move the cursor through the text.
+  function pressLeft()  { moveCursorOr(-1, pressUp); }
+  function pressRight() { moveCursorOr(+1, pressDown); }
+
+  function moveCursorOr(dir, fallback) {
+    const s = state.screen;
+    if (s && s.kind === 'team-name') {
+      s.cursor = Math.max(0, Math.min(s.text.length, s.cursor + dir));
+      return;
+    }
+    fallback();
+  }
 
   function moveScreen(dir) {
     const s = state.screen;
@@ -1285,6 +1603,25 @@
         return [row('TIME OUTS-EDIT'), row(s.step === 'full' ? 'FULL' : 'PARTIAL', `${cur} ${star}`)];
       }
 
+      case 'team-name': {
+        // The console shows the field being edited with the cursor sitting
+        // on a character, e.g. "_OME" for HOME with the cursor at the top.
+        // The cursor blinks so the character under it stays readable.
+        const label = s.field === 'name' ? 'TEAM NAME' : 'TEAM ABBR';
+        const chars = [...s.text];
+        const blinkOn = Math.floor(Date.now() / 400) % 2 === 0;
+        if (blinkOn) {
+          if (s.cursor < chars.length) chars[s.cursor] = '_';
+          else chars.push('_');
+        } else if (s.cursor >= chars.length) {
+          chars.push(' ');
+        }
+        return [
+          row(`${teamLabel(s.team)}- ${label}`),
+          row(chars.join('').slice(0, LCD_COLS - 2), star),
+        ];
+      }
+
       case 'menu': {
         const item = MENU_ITEMS[s.idx];
         return [row(item.line1), row(item.line2)];
@@ -1325,8 +1662,8 @@
     els.homeSog.textContent    = String(state.home.sog);
     els.guestSog.textContent   = String(state.guest.sog);
     els.period.textContent     = String(state.period);
-    els.homeName.textContent   = state.settings.homeName;
-    els.guestName.textContent  = state.settings.guestName;
+    renderTnmc('home');
+    renderTnmc('guest');
 
     // Time Outs > Show on Main puts the time out clock in the clock digits.
     const showTimeOut = state.timeOut.active && state.settings.showOnMain;
@@ -1355,8 +1692,19 @@
 
     document.body.classList.toggle('brightness-low', state.settings.dimming === 'Low');
 
+    // Whichever insert is in the console is the one on show.
+    if (els.insertHockey)   els.insertHockey.hidden   = state.insert !== 'hockey';
+    if (els.insertTeamName) els.insertTeamName.hidden = state.insert !== 'teamname';
+    if (els.insertTab) {
+      els.insertTab.textContent = state.insert === 'hockey' ? 'LL-2436' : 'LL-2441';
+      els.insertTab.title = state.insert === 'hockey'
+        ? 'Hockey insert fitted - pull the tab to swap in the team name insert'
+        : 'Team name insert fitted - pull the tab to swap the hockey insert back';
+    }
+
     if (els.startBtn) els.startBtn.classList.toggle('led-on', state.clockRunning);
     if (els.hornBtn)  els.hornBtn.classList.toggle('led-on', state.settings.autoHorn);
+    if (els.shiftBtn) els.shiftBtn.classList.toggle('armed', state.shift);
 
     // Highlight the key whose value the LCD is waiting on.
     const sel = armedSelector();
@@ -1383,6 +1731,7 @@
       case 'timeout-onoff':  return '[data-action="timeout-onoff"]';
       case 'menu':
       case 'edit-settings':  return '[data-action="menu"]';
+      case 'team-name':      return null;   // the whole insert is in use
       default:               return null;
     }
   }
@@ -1536,9 +1885,23 @@
       case 'clear':           pressClear(); break;
       case 'up':              pressUp(); break;
       case 'down':            pressDown(); break;
-      case 'left':            pressUp(); break;    // the console's left/right
-      case 'right':           pressDown(); break;  // walk the same list
+      case 'left':            pressLeft(); break;
+      case 'right':           pressRight(); break;
       case 'menu':            pressMenu(); break;
+
+      // Team name insert (LL-2441)
+      case 'tn-char':         typeChar(val); break;
+      case 'tn-width':        setTnmc('columns', Number(val)); break;
+      case 'tn-height':       setTnmc('rows', Number(val)); break;
+      case 'tn-stroke':       pressStroke(val); break;
+      case 'tn-shift':        state.shift = !state.shift; break;
+      case 'tn-amp':          typeChar(state.shift ? '-' : '&'); break;
+      case 'insert':
+        // The pull tab: swap the insert by hand. Leaving name entry with the
+        // insert removed also ends the entry, as it must on the real deck.
+        if (state.screen && state.screen.kind === 'team-name') closeScreen();
+        else state.insert = state.insert === 'hockey' ? 'teamname' : 'hockey';
+        break;
       case 'edit':            state.editArmed = !state.editArmed; break;
       case 'auto-horn':       pressAutoHorn(); break;
       case 'count-dir':       pressCountDirection(); break;
@@ -1617,6 +1980,30 @@
     { r: 2, c: 2, text: 'STOP',  action: 'stop',  cls: 'key-stop' },
   ];
 
+  // Team name insert LL-2441 (DWG-125290): a 10 x 4 QWERTY pad. The top row
+  // is the module configuration - WIDTH (columns), HEIGHT (rows), FONT
+  // (stroke) - plus the &/- key and SHIFT. Digits come from the console's
+  // own number pad, which the insert does not cover.
+  const TEAMNAME_KEYS = [
+    { r: 1, c: 1,  text: '16\nCOLUMNS',      action: 'tn-width',  val: '16' },
+    { r: 1, c: 2,  text: '32\nCOLUMNS',      action: 'tn-width',  val: '32' },
+    { r: 1, c: 3,  text: '48\nCOLUMNS',      action: 'tn-width',  val: '48' },
+    { r: 1, c: 4,  text: '64\nCOLUMNS',      action: 'tn-width',  val: '64' },
+    { r: 1, c: 5,  text: '7\nROWS',          action: 'tn-height', val: '7'  },
+    { r: 1, c: 6,  text: '8\nROWS',          action: 'tn-height', val: '8'  },
+    { r: 1, c: 7,  text: 'SINGLE\nSTROKE',   action: 'tn-stroke', val: 'single' },
+    { r: 1, c: 8,  text: 'DOUBLE\nSTROKE',   action: 'tn-stroke', val: 'double' },
+    { r: 1, c: 9,  text: '&  /  -',          action: 'tn-amp',    label: 'ampersand or hyphen' },
+    { r: 1, c: 10, text: 'SHIFT',            action: 'tn-shift',  id: 'shift-key' },
+  ];
+  'QWERTYUIOP'.split('').forEach((ch, i) =>
+    TEAMNAME_KEYS.push({ r: 2, c: i + 1, text: ch, action: 'tn-char', val: ch }));
+  "ASDFGHJKL'".split('').forEach((ch, i) =>
+    TEAMNAME_KEYS.push({ r: 3, c: i + 1, text: ch, action: 'tn-char', val: ch }));
+  'ZXCVBNM,.'.split('').forEach((ch, i) =>
+    TEAMNAME_KEYS.push({ r: 4, c: i + 1, text: ch, action: 'tn-char', val: ch }));
+  TEAMNAME_KEYS.push({ r: 4, c: 10, text: 'SPACE', action: 'tn-char', val: ' ', label: 'space' });
+
   function buildKeys(containerId, keys, team) {
     const host = $(containerId);
     if (!host) return;
@@ -1653,6 +2040,7 @@
     buildKeys('keys-home',  teamKeys('home'),  'home');
     buildKeys('keys-guest', teamKeys('guest'), 'guest');
     buildKeys('keys-game',  GAME_KEYS);
+    buildKeys('keys-teamname', TEAMNAME_KEYS);
     buildKeys('keys-num',   NUM_KEYS);
     buildKeys('keys-nav',   NAV_KEYS);
     buildKeys('keys-horn',  HORN_KEYS);
@@ -1710,6 +2098,20 @@
       const t = e.target;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
 
+      // While a team name is being entered the keyboard types into it, so
+      // the letter shortcuts (H = horn, M = menu, E = edit) and the space
+      // bar stand down. Holding Shift selects the Alternate Narrow face.
+      if (state.screen && state.screen.kind === 'team-name') {
+        if (/^[a-z0-9]$/i.test(e.key) || e.key === ' ' || "&',-.".includes(e.key)) {
+          e.preventDefault();
+          if (e.shiftKey && /^[a-z]$/i.test(e.key)) state.shift = true;
+          typeChar(e.key);
+          return;
+        }
+        if (e.key === 'Backspace') { e.preventDefault(); backspaceChar(); return; }
+        // Enter, Escape and the arrows fall through to the handlers below.
+      }
+
       if (e.key === ' ' || e.code === 'Space') {
         // The remote rocker switch: one key toggles START / STOP.
         e.preventDefault();
@@ -1736,8 +2138,10 @@
         if (state.buffer) state.buffer = state.buffer.slice(0, -1);
         return;
       }
-      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft')    { e.preventDefault(); pressUp(); return; }
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); pressDown(); return; }
+      if (e.key === 'ArrowUp')    { e.preventDefault(); pressUp(); return; }
+      if (e.key === 'ArrowDown')  { e.preventDefault(); pressDown(); return; }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); pressLeft(); return; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); pressRight(); return; }
       if (e.key === 'm' || e.key === 'M') { e.preventDefault(); pressMenu(); return; }
       if (e.key === 'e' || e.key === 'E') { e.preventDefault(); state.editArmed = !state.editArmed; return; }
     });
@@ -1765,8 +2169,12 @@
     loadSettings();
     newGame();
     buildKeypad();
-    els.startBtn = $('start-key');
-    els.hornBtn  = $('horn-key');
+    els.startBtn        = $('start-key');
+    els.hornBtn         = $('horn-key');
+    els.shiftBtn        = $('shift-key');
+    els.insertHockey    = $('insert-hockey');
+    els.insertTeamName  = $('insert-teamname');
+    els.insertTab       = $('insert-tab');
     bindKeypad();
     bindKeyboard();
     bindAudioPrimer();

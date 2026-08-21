@@ -43,7 +43,7 @@
             <!-- Drop a monogram image in here to match the installed board. -->
             <div class="sb-logo" aria-hidden="true"></div>
             <div class="tnmc" aria-label="home team name">
-              <span class="tnmc-text" id="home-name">HOME</span>
+              <div class="tnmc-matrix" id="home-tnmc"></div>
             </div>
             <div class="seg seg-red seg-score">
               <span class="seg-bg">88</span>
@@ -71,7 +71,7 @@
           <div class="sb-col sb-col-team">
             <div class="sb-logo" aria-hidden="true"></div>
             <div class="tnmc" aria-label="guest team name">
-              <span class="tnmc-text" id="guest-name">GUEST</span>
+              <div class="tnmc-matrix" id="guest-tnmc"></div>
             </div>
             <div class="seg seg-red seg-score">
               <span class="seg-bg">88</span>
@@ -188,8 +188,14 @@
       <!-- ---- Key deck ---- -->
       <div class="con-deck">
 
-        <!-- Sport insert: LL-2436 Hockey / Lacrosse / Handball -->
-        <div class="insert" aria-label="LL-2436 hockey insert">
+        <!-- Sport insert slot. The hockey keypad (LL-2436) is fitted for
+             play; team name entry swaps in the TEAM NAME keyboard
+             (LL-2441). The tab on the left swaps them by hand, the way the
+             physical insert slides in and out of the console. -->
+        <button type="button" class="insert-tab" id="insert-tab"
+                data-action="insert" aria-label="swap sport insert">LL-2436</button>
+
+        <div class="insert" id="insert-hockey" aria-label="LL-2436 hockey insert">
           <div class="insert-legend">
             <div class="insert-sport">HOCKEY/ LACROSSE/<br>HANDBALL</div>
             <table class="insert-codes">
@@ -216,6 +222,26 @@
           <div class="key-group key-group-team">
             <div class="key-group-title">GUEST</div>
             <div class="key-grid" id="keys-guest"></div>
+          </div>
+        </div>
+
+        <!-- Sport insert: LL-2441 Team Name (hidden until swapped in) -->
+        <div class="insert insert-tn" id="insert-teamname"
+             aria-label="LL-2441 team name insert" hidden>
+          <div class="insert-legend insert-legend-tn">
+            <div class="insert-sport">TEAM NAME</div>
+            <div class="insert-note">
+              WIDTH / HEIGHT / FONT set the message center module.
+              SHIFT selects the narrow face.
+            </div>
+          </div>
+          <div class="tn-pad">
+            <div class="tn-brackets">
+              <span class="tn-bracket tn-bracket-width">WIDTH</span>
+              <span class="tn-bracket tn-bracket-height">HEIGHT</span>
+              <span class="tn-bracket tn-bracket-font">FONT</span>
+            </div>
+            <div class="key-grid" id="keys-teamname"></div>
           </div>
         </div>
 
@@ -247,6 +273,6 @@
 
   </div>
 
-  <script src="app.js?v=20260820c"></script>
+  <script src="app.js?v=20260820e"></script>
 </body>
 </html>
