@@ -132,6 +132,9 @@ html, body {
   flex-direction: column;
   gap: clamp(5px, 2.0cqi, 18px);
   container-type: inline-size;
+  /* Nothing extends past the board face, so the name strips' overhang can
+     never spill outside it on a narrow viewport. */
+  overflow: hidden;
 }
 
 /* ---- Upper band: 5 columns x 3 rows ----
@@ -171,13 +174,26 @@ html, body {
   gap: clamp(1px, 0.5cqi, 5px);
 }
 
-/* ---- Lower band: two penalty pairs ---- */
+/* ---- Lower band: two penalty pairs ----
+   The player and penalty windows are one block height across both columns,
+   so the two rows line up. Letting each window size itself from its own
+   digits staggers them: the penalty digits are smaller, so its second row
+   would start higher than the player's. */
 
 .sb-lower {
+  /* Matched to the score window's height so the whole face reads as one
+     set of windows. */
+  --pen-block-h: clamp(12px, 9.4cqi, 68px);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: clamp(6px, 2.6cqi, 24px);
+}
+
+.sb-lower .seg {
+  height: var(--pen-block-h);
+  display: inline-flex;
+  align-items: center;
 }
 
 .sb-pen-half {
@@ -302,14 +318,20 @@ html, body {
     0 0 0.22em var(--led-glow);
 }
 
-/* Digit sizes from the photo's window heights: the clock, scores, shots on
-   goal and player numbers are all much the same size, with the penalty
-   times and the period digit a little smaller. */
+/* One digit size for every window except the period digit.
+   The photo's window heights are all within a few percent of each other
+   (16-17% of the board), and the width differences follow from the digit
+   count, not the digit size: the penalty window measures 1.54x the player
+   window, which is what 3 digits plus a narrow colon comes to. This font
+   draws a wider colon than the board does, so the penalty window ends up
+   a little wider here than on the real face - the digits are what the eye
+   reads, so they match. The period digit really is smaller: 5% of the
+   board for one digit against 7% per score digit. */
 .seg-clock  { font-size: clamp(11px, 8.60cqi, 62px); }
 .seg-score  { font-size: clamp(11px, 8.60cqi, 62px); }
 .seg-sog    { font-size: clamp(11px, 8.60cqi, 62px); }
-.seg-player { font-size: clamp(10px, 8.20cqi, 59px); }
-.seg-pen    { font-size: clamp(9px,  7.40cqi, 53px); }
+.seg-player { font-size: clamp(11px, 8.60cqi, 62px); }
+.seg-pen    { font-size: clamp(11px, 8.60cqi, 62px); }
 .seg-period { font-size: clamp(8px,  6.90cqi, 50px); }
 
 /* ---- Clock window: white-bordered cutout with the maker's mark ---- */
