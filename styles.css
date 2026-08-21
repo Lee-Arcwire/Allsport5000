@@ -160,9 +160,9 @@ html, body {
 /* The SHOTS ON GOAL captions stand in the logo / name-strip rows. */
 .sb-cap-sog       { grid-row: 1 / span 2; align-self: center; }
 .sb-logo          { grid-row: 1; }
-.sb-clock-window  { grid-row: 1; }
+.sb-clock-stack   { grid-row: 1; }
 .tnmc             { grid-row: 2; }
-.sb-upper .seg,
+.sb-upper > .seg,
 .sb-period        { grid-row: 3; }
 
 /* Centre column: PERIOD caption sits at the top of the digits row, with
@@ -214,16 +214,18 @@ html, body {
 .sb-cap {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 800;
-  font-size: clamp(5px, 2.05cqi, 15px);
-  line-height: 1.05;
-  letter-spacing: 0.02em;
+  font-size: clamp(7px, 3.50cqi, 26px);
+  line-height: 1.1;
+  /* The board's caption face is narrower than Inter, so the tracking is
+     pulled in slightly to keep the words near their painted width. */
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   text-align: center;
   color: #f2f4f8;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
   white-space: nowrap;
 }
-.sb-cap-period { font-size: clamp(4px, 1.75cqi, 13px); }
+.sb-cap-period { font-size: clamp(6px, 3.20cqi, 24px); }
 
 /* ---- Logo plaque: empty by default; drop a monogram in to match ---- */
 
@@ -334,7 +336,14 @@ html, body {
 .seg-pen    { font-size: clamp(11px, 8.60cqi, 62px); }
 .seg-period { font-size: clamp(8px,  6.90cqi, 50px); }
 
-/* ---- Clock window: white-bordered cutout with the maker's mark ---- */
+/* ---- Clock: maker's mark painted on the face, then the window ---- */
+
+.sb-clock-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1px, 0.35cqi, 3px);
+}
 
 .sb-clock-window {
   display: flex;
@@ -355,9 +364,10 @@ html, body {
 .sb-brand {
   font-family: 'Inter', sans-serif;
   font-weight: 700;
-  font-size: clamp(3px, 0.95cqi, 12px);
-  letter-spacing: 0.20em;
-  color: rgba(255, 255, 255, 0.72);
+  font-size: clamp(4px, 1.35cqi, 10px);
+  letter-spacing: 0.16em;
+  color: #eef0f4;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 
