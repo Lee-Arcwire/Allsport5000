@@ -2,9 +2,10 @@
    Daktronics All Sport 5000 hockey console emulator — styles
 
    Three stacked panels, all sharing one max width:
-     1. scoreboard   — LED digit windows (carried over from the Nevco
-                       emulator as a starting point; field set still to be
-                       reworked for the Daktronics hockey board)
+     1. scoreboard   — the installed Daktronics hockey board
+                       (docs/reference/scoreboard.jpeg): blue face with white
+                       trim, amber digits throughout except the scores and
+                       penalty times, which are red
      2. console top  — 2-line x 16-character green LCD in the chassis band
      3. console deck — LL-2436 hockey sport insert (left) + the fixed
                        standard keys (right), drawn as real keys rather
@@ -20,18 +21,24 @@
 :root {
   --panel-max:       1000px;
 
-  --sb-board:        #18345e;
-  --sb-board-edge:   #0a1830;
-  --sb-window-bg:    #02060d;
-  --sb-window-edge:  #0a1426;
+  /* Board face: royal blue with white perimeter trim, sampled from the
+     photo (the photo is in shade, so this is nudged up a little). */
+  --sb-board:        #3b4491;
+  --sb-trim:         #f2f4f8;
+  --sb-window-bg:    #101014;
+  --sb-window-edge:  #05070c;
 
-  --led-amber-on:    #ff8a20;
-  --led-amber-glow:  rgba(255, 138, 32, 0.45);
-  --led-amber-off:   rgba(255, 138, 32, 0.10);
+  /* Amber LEDs: clock, shots on goal, period, player numbers, team names. */
+  --led-amber-on:    #ffab2e;
+  --led-amber-glow:  rgba(255, 171, 46, 0.45);
+  /* Unlit segments are all but invisible on the real board - the windows
+     read as flat black - so the ghost is only just perceptible. */
+  --led-amber-off:   rgba(255, 171, 46, 0.035);
 
+  /* Red LEDs: scores and penalty times. */
   --led-red-on:      #ff3a1a;
   --led-red-glow:    rgba(255, 58, 26, 0.45);
-  --led-red-off:     rgba(255, 58, 26, 0.10);
+  --led-red-off:     rgba(255, 58, 26, 0.035);
 
   /* Console chassis */
   --con-face:        #b9bcc0;
@@ -63,8 +70,8 @@
 /* Dimming Menu / brightness: dims the scoreboard LED variants. Toggled on
    <body> by renderConsole() from state.settings.dimming. */
 body.brightness-low {
-  --led-amber-on:    #b66318;
-  --led-amber-glow:  rgba(255, 138, 32, 0.22);
+  --led-amber-on:    #b6741a;
+  --led-amber-glow:  rgba(255, 171, 46, 0.22);
   --led-red-on:      #a82a14;
   --led-red-glow:    rgba(255, 58, 26, 0.22);
 }
@@ -90,7 +97,14 @@ html, body {
   gap: 12px;
 }
 
-/* ==================== SCOREBOARD ==================== */
+/* ==================== SCOREBOARD ====================
+   Geometry taken from docs/reference/scoreboard.jpeg. Digit sizes are
+   proportional to the windows measured off that photo: clock, score and
+   shots-on-goal digits are the same height, player numbers slightly
+   smaller, penalty times and the period digit smaller again.
+
+   All sizes are in cqi (1% of the board's own width) so the whole face
+   scales with the chassis instead of overflowing it. */
 
 .scoreboard { display: flex; justify-content: center; }
 
@@ -99,23 +113,120 @@ html, body {
   max-width: var(--panel-max);
   margin: 0 auto;
   background:
-    radial-gradient(ellipse at top, #1f4378 0%, var(--sb-board) 55%, #0e2349 100%);
-  border: 3px solid var(--sb-board-edge);
-  border-radius: 4px;
-  padding: clamp(4px, 0.78cqi, 10px) clamp(6px, 1.25cqi, 16px);
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.18) 100%),
+    var(--sb-board);
+  /* White perimeter trim, then the dark surround the board hangs in. */
+  border: clamp(2px, 0.55cqi, 6px) solid var(--sb-trim);
+  outline: 1px solid #0b0e1a;
+  border-radius: 6px;
+  /* Generous vertical padding: the real face carries a band of blank blue
+     above the captions and below the penalty windows. */
+  padding: clamp(6px, 2.2cqi, 28px) clamp(6px, 1.6cqi, 20px);
   box-shadow:
-    inset 0 0 60px rgba(0, 0, 0, 0.45),
-    0 8px 24px rgba(0, 0, 0, 0.55);
-  display: grid;
-  grid-template-columns: auto auto 1fr auto auto;
-  align-items: center;
-  gap: clamp(2px, 0.55cqi, 8px);
-  /* The board sizes its own contents: every digit / tag / gap below is in
-     cqi (1% of board width), so content always fits the chassis. */
+    inset 0 0 70px rgba(0, 0, 0, 0.40),
+    0 10px 28px rgba(0, 0, 0, 0.60);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 2.4cqi, 30px);
   container-type: inline-size;
 }
 
-/* ---- Digit windows ---- */
+/* ---- Bands ---- */
+
+.sb-upper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(3px, 1.0cqi, 13px);
+}
+
+.sb-lower {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  /* The board leaves a wider gap between the two teams' penalty pairs than
+     between a team's own player / penalty columns. */
+  gap: clamp(8px, 3.2cqi, 42px);
+}
+
+.sb-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2px, 0.6cqi, 7px);
+}
+
+.sb-pen-half {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(4px, 1.5cqi, 20px);
+}
+
+.sb-pen-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(2px, 0.6cqi, 7px);
+}
+
+/* ---- Painted captions (silkscreened on the board face) ---- */
+
+.sb-cap {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 800;
+  font-size: clamp(5px, 1.75cqi, 22px);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #f2f4f8;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+}
+.sb-cap-period { font-size: clamp(4px, 1.45cqi, 18px); }
+
+/* ---- Logo plaque: empty by default; drop in a monogram to match ---- */
+
+.sb-logo {
+  width: clamp(14px, 5.2cqi, 68px);
+  aspect-ratio: 1;
+  background: center / contain no-repeat;
+}
+
+/* ---- Team-name message center ----
+   A dot-matrix strip above each score (programmed with the LL-2441 Team
+   Name insert on the real console). Rendered as an amber character strip
+   over the same near-black window as the digits. */
+
+.tnmc {
+  /* The strip is a little wider than the score window below it, as on the
+     board, so it overhangs the column on both sides. */
+  width: 118%;
+  min-width: clamp(30px, 11.5cqi, 150px);
+  background: var(--sb-window-bg);
+  border: 1px solid var(--sb-window-edge);
+  border-radius: 2px;
+  padding: clamp(1px, 0.35cqi, 4px) clamp(2px, 0.6cqi, 7px);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+  text-align: center;
+}
+
+.tnmc-text {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(5px, 1.85cqi, 23px);
+  font-weight: 400;
+  letter-spacing: 0.10em;
+  line-height: 1.15;
+  white-space: nowrap;
+  color: var(--led-amber-on);
+  text-shadow:
+    0 0 0.10em var(--led-amber-glow),
+    0 0 0.22em var(--led-amber-glow);
+}
+
+/* ---- Digit windows (shared by amber & red variants) ---- */
 
 .seg {
   position: relative;
@@ -126,7 +237,7 @@ html, body {
   background: var(--sb-window-bg);
   border: 1px solid var(--sb-window-edge);
   border-radius: 3px;
-  padding: clamp(1px, 0.4cqi, 4px) clamp(2px, 0.6cqi, 6px);
+  padding: clamp(1px, 0.5cqi, 6px) clamp(2px, 0.7cqi, 9px);
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.95);
 }
 
@@ -148,6 +259,8 @@ html, body {
   padding: inherit;
   display: flex;
   align-items: center;
+  /* Digits are right-aligned in their window, so a blanked leading zero
+     leaves the leftmost position dark exactly as the board does. */
   justify-content: flex-end;
   color: var(--led-on);
   text-shadow:
@@ -155,98 +268,42 @@ html, body {
     0 0 0.22em var(--led-glow);
 }
 
-.seg-1     { font-size: clamp(8px,  3.60cqi, 37px); min-width: 0.7em; }
-.seg-2     { font-size: clamp(8px,  3.60cqi, 37px); min-width: 1.4em; }
-.seg-4     { font-size: clamp(7px,  3.13cqi, 32px); min-width: 2.6em; }
-.seg-clock { font-size: clamp(14px, 6.56cqi, 67px); min-width: 2.9em; }
-.seg-score { font-size: clamp(14px, 6.56cqi, 67px); }
-.seg-shot  { font-size: clamp(7px,  2.66cqi, 27px); }
-.sb-period-row .seg-1 { font-size: clamp(8px, 3.28cqi, 34px); }
+/* Size hierarchy measured off the photo: the digit windows fill most of the
+   face, which is why the board is only about 1.7 times wider than it is
+   tall rather than a thin strip. */
+.seg-clock  { font-size: clamp(15px, 8.90cqi, 115px); }
+.seg-score  { font-size: clamp(15px, 8.90cqi, 115px); }
+.seg-sog    { font-size: clamp(15px, 8.90cqi, 115px); }
+.seg-player { font-size: clamp(13px, 7.70cqi, 100px); }
+.seg-pen    { font-size: clamp(10px, 6.20cqi, 80px); }
+.seg-period { font-size: clamp(9px,  5.80cqi, 75px); }
 
-/* ---- Label plaques ---- */
+/* ---- Clock window: white-bordered cutout with the maker's mark ---- */
 
-.sb-tag {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 500;
-  font-size: clamp(3px, 1.02cqi, 10px);
-  letter-spacing: 0.01em;
-  color: #f3f3f3;
-  background: #050505;
-  border: 1px solid #1a1a1a;
-  padding: clamp(1px, 0.2cqi, 2px) clamp(2px, 1.0cqi, 10px);
-  border-radius: 2px;
-  text-align: center;
-  white-space: nowrap;
-  align-self: center;
-}
-.sb-tag-team  { font-size: clamp(4px, 1.17cqi, 12px); font-weight: 600; }
-.sb-tag-shots {
-  font-size: clamp(3px, 0.94cqi, 10px);
-  padding: clamp(1px, 0.1cqi, 1px) clamp(2px, 0.8cqi, 8px);
-  margin-top: clamp(1px, 0.4cqi, 4px);
-}
-
-/* ---- Cells & rows ---- */
-
-.sb-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 4px;
-}
-
-.sb-score-cell { align-items: center; }
-
-.sb-pens {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(2px, 0.78cqi, 10px);
-}
-.sb-pens-home  { margin-right: clamp(6px, 2.0cqi, 22px); }
-.sb-pens-guest { margin-left:  clamp(6px, 2.0cqi, 22px); }
-
-.sb-pen-row {
-  display: flex;
-  align-items: flex-end;
-  gap: clamp(2px, 0.78cqi, 10px);
-}
-
-.sb-center {
+.sb-clock-window {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  background: var(--sb-window-bg);
+  border: clamp(1px, 0.22cqi, 3px) solid var(--sb-trim);
+  border-radius: 4px;
+  padding: clamp(1px, 0.3cqi, 4px) clamp(3px, 1.0cqi, 13px) clamp(2px, 0.5cqi, 6px);
+}
+.sb-clock-window .seg {
+  background: none;
+  border: 0;
+  box-shadow: none;
   padding: 0;
 }
 
-.sb-brand-mark {
+.sb-brand {
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: clamp(5px, 0.78cqi, 10px);
-  letter-spacing: 0.35em;
-  text-transform: lowercase;
-  color: rgba(255, 255, 255, 0.45);
-  margin-top: 2px;
+  font-weight: 700;
+  font-size: clamp(3px, 0.95cqi, 12px);
+  letter-spacing: 0.20em;
+  color: rgba(255, 255, 255, 0.72);
 }
 
-.sb-center-bottom {
-  display: flex;
-  align-items: flex-end;
-  gap: clamp(3px, 1.41cqi, 18px);
-  margin-top: 6px;
-}
-
-.sb-period-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.sb-period-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
 /* ==================== CONSOLE CHASSIS ==================== */
 

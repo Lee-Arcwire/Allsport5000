@@ -47,8 +47,10 @@
   const LCD_COLS = 16;
   const SETTINGS_VERSION = 1;
 
-  const MAX_SCORE     = 999;
-  const MAX_STAT      = 999;   // shots on goal / saves
+  // The installed board's score and shots-on-goal windows are 2 digits, so
+  // those cap at 99. Saves has no window at all - it lives on the LCD only.
+  const MAX_SCORE     = 99;
+  const MAX_STAT      = 99;    // shots on goal / saves
   const MAX_PERIOD    = 9;
   const MAX_TIMEOUTS  = 9;
   const MAX_PLAYER    = 99;
@@ -183,6 +185,8 @@
     period:    $('period'),
     time:      $('time'),
     timeBg:    $('time-bg'),
+    homeName:  $('home-name'),
+    guestName: $('guest-name'),
     lcd1:      $('lcd-line1'),
     lcd2:      $('lcd-line2'),
     activeCode: $('active-code'),
@@ -349,6 +353,22 @@
     if (ms < 0) ms = 0;
     const total = Math.ceil(ms / 1000);
     return `${Math.floor(total / 60)}:${pad2(total % 60)}`;
+  }
+
+  // The board's clock window is 4 digits with the leading zero blanked, and
+  // its penalty windows are 3 digits (M:SS), so they top out at 9:59.
+  function fmtBoardClock(ms) {
+    if (ms < 0) ms = 0;
+    if (state.settings.tenths && ms < 60000) {
+      const tenths = Math.floor(ms / 100);
+      return `${Math.floor(tenths / 10)}.${tenths % 10}`;
+    }
+    const total = Math.ceil(ms / 1000);
+    return `${Math.floor(total / 60)}:${pad2(total % 60)}`;
+  }
+
+  function fmtBoardPenalty(ms) {
+    return fmtPenalty(Math.min(ms, 9 * 60000 + 59 * 1000));
   }
 
   function parseMMSS(digits) {
@@ -1298,27 +1318,32 @@
   // ---------------------------------------------------------------
 
   function renderScoreboard() {
-    els.homeScore.textContent  = pad2(state.home.score);
-    els.guestScore.textContent = pad2(state.guest.score);
-    els.homeSog.textContent    = pad2(state.home.sog);
-    els.guestSog.textContent   = pad2(state.guest.sog);
+    // Leading zeros are blanked on every window, the way the board drives
+    // them: a score of 3 lights one digit, not "03".
+    els.homeScore.textContent  = String(state.home.score);
+    els.guestScore.textContent = String(state.guest.score);
+    els.homeSog.textContent    = String(state.home.sog);
+    els.guestSog.textContent   = String(state.guest.sog);
     els.period.textContent     = String(state.period);
+    els.homeName.textContent   = state.settings.homeName;
+    els.guestName.textContent  = state.settings.guestName;
 
     // Time Outs > Show on Main puts the time out clock in the clock digits.
     const showTimeOut = state.timeOut.active && state.settings.showOnMain;
     const displayMs = showTimeOut ? state.timeOut.remainingMs : state.timeMs;
-    els.time.textContent   = showTimeOut ? fmtPenalty(displayMs) : fmtMain(displayMs);
+    els.time.textContent   = showTimeOut ? fmtPenalty(displayMs) : fmtBoardClock(displayMs);
     els.timeBg.textContent = (!showTimeOut && state.settings.tenths && displayMs < 60000) ? '88.8' : '88:88';
 
     renderPenaltySlots(els.homePen,  state.home.penalties);
     renderPenaltySlots(els.guestPen, state.guest.penalties);
   }
 
+  // An empty slot is dark on the board, not "-- 0:00".
   function renderPenaltySlots(slots, penalties) {
     for (let i = 0; i < slots.length; i++) {
       const p = penalties[i];
-      slots[i].player.textContent = p ? pad2(p.player) : '--';
-      slots[i].time.textContent   = p ? fmtPenalty(p.remainingMs) : '0:00';
+      slots[i].player.textContent = p ? String(p.player) : '';
+      slots[i].time.textContent   = p ? fmtBoardPenalty(p.remainingMs) : '';
     }
   }
 

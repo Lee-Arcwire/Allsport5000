@@ -6,9 +6,13 @@ Daktronics **All Sport 5000 Series** control console emulator for **hockey**
 Same shape as the `nevco` emulator: scoreboard on top, the console's control
 display in the middle, the control keypad on the bottom.
 
-- **Scoreboard** — LED digit windows (carried over from the Nevco 4760 board as
-  a starting point; the field set and layout still need reworking for the
-  Daktronics hockey board this console drives).
+- **Scoreboard** — the installed board, modelled from
+  `docs/reference/scoreboard.jpeg`: shots on goal at the outside edges, a
+  team-name message center above each score, the clock above the period at
+  centre, and two player/penalty slots per team below. Amber digits
+  throughout except the scores and penalty times, which are red. HOME is the
+  left half. The board has no T.O.L. or saves windows, so those console
+  values appear on the LCD only.
 - **Control display** — the console's 2-line × 16-character green LCD, with the
   real prompt text from the manual (`MAIN CLOCK -SET`, `HOME PLYR/PEN`,
   `TIME OUTS-HOME`, …).
@@ -55,8 +59,9 @@ SETTINGS with the manual's factory defaults (p.84).
 Settings persist to `localStorage`, and the game in progress is snapshotted so
 the console's `PREV CODE nnnn / RESUME GAME?` power-up prompt works.
 
-Not wired yet: the Display and Dimming submenus beyond brightness, team-name
-message-center entry (needs the LL-2441 Team Name insert), radio channel
+Not wired yet: the Display and Dimming submenus beyond brightness, typing new
+team names into the message centers (on the real console that needs the
+LL-2441 Team Name insert, so it wants an insert-swap mode here), radio channel
 settings, and the lacrosse/handball-only keys from insert 0G-1084219.
 
 ## Reference material

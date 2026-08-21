@@ -4,6 +4,44 @@ Extracted from `allsport500_manual.pdf` so the emulator can be checked without
 re-reading the PDF. Page numbers are the manual's printed numbers; the PDF is
 offset by +10 (printed p.74 = PDF page 84).
 
+## The installed scoreboard
+
+From `docs/reference/scoreboard.jpeg`. Blue face, white perimeter trim,
+Daktronics mark over the clock window. HOME is the **left** half.
+
+```
+ SHOTS          [logo]    ┌──────────┐   [logo]         SHOTS
+ ON GOAL                  │  _8:33   │                ON GOAL
+                          └──────────┘
+ ┌──────┐   ┌────────┐      PERIOD    ┌────────┐   ┌──────┐
+ │ SOG  │   │ TEAM   │       ┌─┐      │ TEAM   │   │ SOG  │
+ │  2d  │   │ SCORE  │       │1│      │ SCORE  │   │  2d  │
+ └──────┘   └────────┘       └─┘      └────────┘   └──────┘
+   PLAYER      PENALTY            PLAYER      PENALTY
+ ┌──────┐  ┌──────────┐      ┌──────┐  ┌──────────┐
+ │  2d  │  │  M:SS    │      │  2d  │  │   M:SS   │
+ ├──────┤  ├──────────┤      ├──────┤  ├──────────┤
+ │  2d  │  │  M:SS    │      │  2d  │  │   M:SS   │
+ └──────┘  └──────────┘      └──────┘  └──────────┘
+```
+
+| Window | Digits | Colour | Notes |
+|---|---|---|---|
+| Clock | 4 (`MM:SS`) | amber | Leading zero blanked; drops to `SS.T` under a minute |
+| Team score | 2 | **red** | Caps at 99 |
+| Shots on goal | 2 | amber | Built into this board — no separate SOG console |
+| Period | 1 | amber | Cycles 0–9 |
+| Team name | dot matrix | amber | Message center above each score; programmed with the LL-2441 insert |
+| Player number | 2 | amber | Two slots per team |
+| Penalty time | 3 (`M:SS`) | **red** | Colon after the first digit, so 9:59 is the maximum |
+
+Penalty ordering is mirrored: on the home half the player window is outboard
+and the penalty inboard; on the guest half it is the other way round.
+
+Not on this board — the console tracks them, but they have nowhere to show:
+**saves**, **time outs left**, penalty indicator lamps, goal lights, and any
+shot-clock display. There are no other units in the installation.
+
 ## Console face (Figure 3, p.5)
 
 ```

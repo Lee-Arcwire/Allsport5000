@@ -11,130 +11,140 @@
   <div class="app">
 
     <!-- ============== SCOREBOARD ==============
-         Starting point carried over from the Nevco emulator; the field set
-         and layout still need to be reworked for the Daktronics hockey
-         board this console drives (T.O.L., penalty indicators, saves,
-         team-name message centers). -->
+         Modelled on the installed board (docs/reference/scoreboard.jpeg).
+
+         Upper band, outside in:
+           SHOTS ON GOAL (2 digits, amber) | logo | team-name message center
+           over SCORE (2 digits, red) | clock (4 digits, amber, leading zero
+           blanked) over PERIOD (1 digit, amber) | mirrored.
+         Lower band: two penalty slots per team - PLAYER (2 digits, amber)
+         and PENALTY (M:SS, red) - with the player window outboard on the
+         home side and inboard on the guest side.
+
+         HOME is the left half. The board has no T.O.L., saves or indicator
+         windows, so those console values live on the LCD only. -->
     <section class="scoreboard" aria-label="hockey scoreboard">
       <div class="sb-board">
 
-        <!-- Home penalties: outermost column. [player # | penalty time] -->
-        <div class="sb-pens sb-pens-home" aria-label="home penalties">
-          <div class="sb-pen-row">
-            <div class="sb-cell">
-              <div class="sb-tag">player</div>
-              <div class="seg seg-amber seg-2">
-                <span class="seg-bg">88</span>
-                <span class="seg-fg" id="home-pen1-player">--</span>
-              </div>
-            </div>
-            <div class="sb-cell">
-              <div class="sb-tag">penalty</div>
-              <div class="seg seg-red seg-4">
-                <span class="seg-bg">88:88</span>
-                <span class="seg-fg" id="home-pen1-time">0:00</span>
-              </div>
-            </div>
-          </div>
-          <div class="sb-pen-row">
-            <div class="sb-cell">
-              <div class="sb-tag">player</div>
-              <div class="seg seg-amber seg-2">
-                <span class="seg-bg">88</span>
-                <span class="seg-fg" id="home-pen2-player">--</span>
-              </div>
-            </div>
-            <div class="sb-cell">
-              <div class="sb-tag">penalty</div>
-              <div class="seg seg-red seg-4">
-                <span class="seg-bg">88:88</span>
-                <span class="seg-fg" id="home-pen2-time">0:00</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- ---------------- upper band ---------------- -->
+        <div class="sb-upper">
 
-        <!-- Home score -->
-        <div class="sb-cell sb-score-cell">
-          <div class="sb-tag sb-tag-team">Home</div>
-          <div class="seg seg-amber seg-2 seg-score">
-            <span class="seg-bg">88</span>
-            <span class="seg-fg" id="home-score">00</span>
-          </div>
-        </div>
-
-        <!-- Center: clock above, period + shots on goal below. -->
-        <div class="sb-center">
-          <div class="seg seg-red seg-clock">
-            <span class="seg-bg" id="time-bg">88:88</span>
-            <span class="seg-fg" id="time">15:00</span>
-          </div>
-          <div class="sb-brand-mark">daktronics</div>
-          <div class="sb-center-bottom">
-            <div class="seg seg-amber seg-2 seg-shot">
+          <!-- HOME shots on goal (outermost) -->
+          <div class="sb-col sb-col-sog">
+            <div class="sb-cap">Shots<br>on Goal</div>
+            <div class="seg seg-amber seg-sog">
               <span class="seg-bg">88</span>
-              <span class="seg-fg" id="home-sog">00</span>
+              <span class="seg-fg" id="home-sog">0</span>
             </div>
-            <div class="sb-period-stack">
-              <div class="sb-period-row">
-                <div class="sb-tag">period</div>
-                <div class="seg seg-amber seg-1">
-                  <span class="seg-bg">8</span>
-                  <span class="seg-fg" id="period">1</span>
-                </div>
-              </div>
-              <div class="sb-tag sb-tag-shots">shots on goal</div>
+          </div>
+
+          <!-- HOME: logo plaque, team-name message center, score -->
+          <div class="sb-col sb-col-team">
+            <!-- Drop a monogram image in here to match the installed board. -->
+            <div class="sb-logo" aria-hidden="true"></div>
+            <div class="tnmc" aria-label="home team name">
+              <span class="tnmc-text" id="home-name">HOME</span>
             </div>
-            <div class="seg seg-amber seg-2 seg-shot">
+            <div class="seg seg-red seg-score">
               <span class="seg-bg">88</span>
-              <span class="seg-fg" id="guest-sog">00</span>
+              <span class="seg-fg" id="home-score">0</span>
             </div>
           </div>
+
+          <!-- Centre: clock over period -->
+          <div class="sb-col sb-col-center">
+            <div class="sb-clock-window">
+              <div class="sb-brand">DAKTRONICS</div>
+              <div class="seg seg-amber seg-clock">
+                <span class="seg-bg" id="time-bg">88:88</span>
+                <span class="seg-fg" id="time">15:00</span>
+              </div>
+            </div>
+            <div class="sb-cap sb-cap-period">Period</div>
+            <div class="seg seg-amber seg-period">
+              <span class="seg-bg">8</span>
+              <span class="seg-fg" id="period">1</span>
+            </div>
+          </div>
+
+          <!-- GUEST: logo plaque, team-name message center, score -->
+          <div class="sb-col sb-col-team">
+            <div class="sb-logo" aria-hidden="true"></div>
+            <div class="tnmc" aria-label="guest team name">
+              <span class="tnmc-text" id="guest-name">GUEST</span>
+            </div>
+            <div class="seg seg-red seg-score">
+              <span class="seg-bg">88</span>
+              <span class="seg-fg" id="guest-score">0</span>
+            </div>
+          </div>
+
+          <!-- GUEST shots on goal (outermost) -->
+          <div class="sb-col sb-col-sog">
+            <div class="sb-cap">Shots<br>on Goal</div>
+            <div class="seg seg-amber seg-sog">
+              <span class="seg-bg">88</span>
+              <span class="seg-fg" id="guest-sog">0</span>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Guest score -->
-        <div class="sb-cell sb-score-cell">
-          <div class="sb-tag sb-tag-team">Guest</div>
-          <div class="seg seg-amber seg-2 seg-score">
-            <span class="seg-bg">88</span>
-            <span class="seg-fg" id="guest-score">00</span>
-          </div>
-        </div>
+        <!-- ---------------- lower band: penalties ----------------
+             Home half reads PLAYER | PENALTY, guest half PLAYER | PENALTY
+             with the player window inboard, mirroring the board. -->
+        <div class="sb-lower">
 
-        <!-- Guest penalties: mirrored (penalty inside, player outside). -->
-        <div class="sb-pens sb-pens-guest" aria-label="guest penalties">
-          <div class="sb-pen-row">
-            <div class="sb-cell">
-              <div class="sb-tag">penalty</div>
-              <div class="seg seg-red seg-4">
-                <span class="seg-bg">88:88</span>
-                <span class="seg-fg" id="guest-pen1-time">0:00</span>
+          <div class="sb-pen-half" aria-label="home penalties">
+            <div class="sb-pen-col">
+              <div class="sb-cap">Player</div>
+              <div class="seg seg-amber seg-player">
+                <span class="seg-bg">88</span>
+                <span class="seg-fg" id="home-pen1-player"></span>
+              </div>
+              <div class="seg seg-amber seg-player">
+                <span class="seg-bg">88</span>
+                <span class="seg-fg" id="home-pen2-player"></span>
               </div>
             </div>
-            <div class="sb-cell">
-              <div class="sb-tag">player</div>
-              <div class="seg seg-amber seg-2">
-                <span class="seg-bg">88</span>
-                <span class="seg-fg" id="guest-pen1-player">--</span>
+            <div class="sb-pen-col">
+              <div class="sb-cap">Penalty</div>
+              <div class="seg seg-red seg-pen">
+                <span class="seg-bg">8:88</span>
+                <span class="seg-fg" id="home-pen1-time"></span>
+              </div>
+              <div class="seg seg-red seg-pen">
+                <span class="seg-bg">8:88</span>
+                <span class="seg-fg" id="home-pen2-time"></span>
               </div>
             </div>
           </div>
-          <div class="sb-pen-row">
-            <div class="sb-cell">
-              <div class="sb-tag">penalty</div>
-              <div class="seg seg-red seg-4">
-                <span class="seg-bg">88:88</span>
-                <span class="seg-fg" id="guest-pen2-time">0:00</span>
+
+          <div class="sb-pen-half" aria-label="guest penalties">
+            <div class="sb-pen-col">
+              <div class="sb-cap">Player</div>
+              <div class="seg seg-amber seg-player">
+                <span class="seg-bg">88</span>
+                <span class="seg-fg" id="guest-pen1-player"></span>
+              </div>
+              <div class="seg seg-amber seg-player">
+                <span class="seg-bg">88</span>
+                <span class="seg-fg" id="guest-pen2-player"></span>
               </div>
             </div>
-            <div class="sb-cell">
-              <div class="sb-tag">player</div>
-              <div class="seg seg-amber seg-2">
-                <span class="seg-bg">88</span>
-                <span class="seg-fg" id="guest-pen2-player">--</span>
+            <div class="sb-pen-col">
+              <div class="sb-cap">Penalty</div>
+              <div class="seg seg-red seg-pen">
+                <span class="seg-bg">8:88</span>
+                <span class="seg-fg" id="guest-pen1-time"></span>
+              </div>
+              <div class="seg seg-red seg-pen">
+                <span class="seg-bg">8:88</span>
+                <span class="seg-fg" id="guest-pen2-time"></span>
               </div>
             </div>
           </div>
+
         </div>
 
       </div>
@@ -237,6 +247,6 @@
 
   </div>
 
-  <script src="app.js?v=20260820b"></script>
+  <script src="app.js?v=20260820c"></script>
 </body>
 </html>
