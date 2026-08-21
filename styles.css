@@ -1,11 +1,14 @@
 /* ====================================================================
    Daktronics All Sport 5000 hockey console emulator — styles
 
-   Three stacked panels, all sharing one max width:
+   Three stacked panels:
      1. scoreboard   — the installed Daktronics hockey board
                        (docs/reference/scoreboard.jpeg): blue face with white
                        trim, amber digits throughout except the scores and
-                       penalty times, which are red
+                       penalty times, which are red. Rendered narrower than
+                       the console, since it's a separate object across the
+                       rink rather than part of the desk - see the max-width
+                       on .sb-board to scale it.
      2. console top  — 2-line x 16-character green LCD in the chassis band
      3. console deck — LL-2436 hockey sport insert (left) + the fixed
                        standard keys (right), drawn as real keys rather
@@ -110,63 +113,84 @@ html, body {
 
 .sb-board {
   width: 100%;
-  max-width: var(--panel-max);
+  /* The real board is about 1.5 : 1 and is a separate object from the
+     console, so it is rendered smaller than the console rather than
+     stretched to the same width. Change this one number to scale it. */
+  max-width: 680px;
   margin: 0 auto;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.18) 100%),
     var(--sb-board);
-  /* White perimeter trim, then the dark surround the board hangs in. */
   border: clamp(2px, 0.55cqi, 6px) solid var(--sb-trim);
   outline: 1px solid #0b0e1a;
   border-radius: 6px;
-  /* Generous vertical padding: the real face carries a band of blank blue
-     above the captions and below the penalty windows. */
-  padding: clamp(6px, 2.2cqi, 28px) clamp(6px, 1.6cqi, 20px);
+  padding: clamp(5px, 1.8cqi, 16px) clamp(5px, 1.5cqi, 14px);
   box-shadow:
     inset 0 0 70px rgba(0, 0, 0, 0.40),
     0 10px 28px rgba(0, 0, 0, 0.60);
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 2.4cqi, 30px);
+  gap: clamp(5px, 2.0cqi, 18px);
   container-type: inline-size;
 }
 
-/* ---- Bands ---- */
+/* ---- Upper band: 5 columns x 3 rows ----
+   Column 1 / 5 are the shots-on-goal stacks, 2 / 4 the team columns
+   (logo, name strip, score), 3 the centre (clock over period). */
 
 .sb-upper {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: clamp(3px, 1.0cqi, 13px);
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  grid-template-rows: auto auto auto;
+  align-items: end;
+  justify-items: center;
+  column-gap: clamp(3px, 1.2cqi, 11px);
+  row-gap: clamp(2px, 0.8cqi, 7px);
 }
+
+.sb-c1 { grid-column: 1; }
+.sb-c2 { grid-column: 2; }
+.sb-c3 { grid-column: 3; }
+.sb-c4 { grid-column: 4; }
+.sb-c5 { grid-column: 5; }
+
+/* The SHOTS ON GOAL captions stand in the logo / name-strip rows. */
+.sb-cap-sog       { grid-row: 1 / span 2; align-self: center; }
+.sb-logo          { grid-row: 1; }
+.sb-clock-window  { grid-row: 1; }
+.tnmc             { grid-row: 2; }
+.sb-upper .seg,
+.sb-period        { grid-row: 3; }
+
+/* Centre column: PERIOD caption sits at the top of the digits row, with
+   the single period digit under it. */
+.sb-period {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1px, 0.5cqi, 5px);
+}
+
+/* ---- Lower band: two penalty pairs ---- */
 
 .sb-lower {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  /* The board leaves a wider gap between the two teams' penalty pairs than
-     between a team's own player / penalty columns. */
-  gap: clamp(8px, 3.2cqi, 42px);
-}
-
-.sb-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(2px, 0.6cqi, 7px);
+  gap: clamp(6px, 2.6cqi, 24px);
 }
 
 .sb-pen-half {
   display: flex;
   align-items: flex-start;
-  gap: clamp(4px, 1.5cqi, 20px);
+  gap: clamp(3px, 1.2cqi, 11px);
 }
 
 .sb-pen-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(2px, 0.6cqi, 7px);
+  gap: clamp(2px, 0.7cqi, 6px);
 }
 
 /* ---- Painted captions (silkscreened on the board face) ---- */
@@ -174,7 +198,7 @@ html, body {
 .sb-cap {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-weight: 800;
-  font-size: clamp(5px, 1.75cqi, 22px);
+  font-size: clamp(5px, 2.05cqi, 15px);
   line-height: 1.05;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -183,39 +207,39 @@ html, body {
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
   white-space: nowrap;
 }
-.sb-cap-period { font-size: clamp(4px, 1.45cqi, 18px); }
+.sb-cap-period { font-size: clamp(4px, 1.75cqi, 13px); }
 
-/* ---- Logo plaque: empty by default; drop in a monogram to match ---- */
+/* ---- Logo plaque: empty by default; drop a monogram in to match ---- */
 
 .sb-logo {
-  width: clamp(14px, 5.2cqi, 68px);
+  width: clamp(12px, 6.0cqi, 44px);
   aspect-ratio: 1;
   background: center / contain no-repeat;
 }
 
-/* ---- Team-name message center ----
-   A dot-matrix strip above each score (programmed with the LL-2441 Team
-   Name insert on the real console). Rendered as an amber character strip
-   over the same near-black window as the digits. */
+/* ---- Team-name message centers ----
+   Measured off the board: each strip is about 1.6 times the width of the
+   score window below it and 0.4 times its height, and it overhangs its
+   column toward the centre of the board. */
 
 .tnmc {
-  /* The strip is a little wider than the score window below it, as on the
-     board, so it overhangs the column on both sides. */
-  width: 118%;
-  min-width: clamp(30px, 11.5cqi, 150px);
+  width: 164%;
   background: var(--sb-window-bg);
   border: 1px solid var(--sb-window-edge);
   border-radius: 2px;
-  padding: clamp(1px, 0.35cqi, 4px) clamp(2px, 0.6cqi, 7px);
+  padding: clamp(1px, 0.3cqi, 3px) clamp(1px, 0.45cqi, 4px);
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.95);
   overflow: hidden;
-  text-align: center;
 }
+.tnmc-home  { justify-self: start; }
+.tnmc-guest { justify-self: end; }
 
 /* The matrix itself: --tnmc-cols x --tnmc-rows LED cells, set by app.js
-   from the module's WIDTH / HEIGHT settings. Cell size follows from the
-   strip width, so a 16-column module has big coarse pixels and a 64-column
-   one fine ones, exactly as the hardware would. */
+   from the module's WIDTH / HEIGHT settings. The cell size follows from
+   the strip width, so a 16-column module has big coarse pixels and a
+   64-column one fine ones, as the hardware would. The cols/rows ratio is
+   also what gives the strip its height - at 48 x 8 that lands at about
+   0.4 of the score window's height, which is what the board shows. */
 .tnmc-matrix {
   display: grid;
   grid-template-columns: repeat(var(--tnmc-cols, 48), 1fr);
@@ -278,15 +302,15 @@ html, body {
     0 0 0.22em var(--led-glow);
 }
 
-/* Size hierarchy measured off the photo: the digit windows fill most of the
-   face, which is why the board is only about 1.7 times wider than it is
-   tall rather than a thin strip. */
-.seg-clock  { font-size: clamp(15px, 8.90cqi, 115px); }
-.seg-score  { font-size: clamp(15px, 8.90cqi, 115px); }
-.seg-sog    { font-size: clamp(15px, 8.90cqi, 115px); }
-.seg-player { font-size: clamp(13px, 7.70cqi, 100px); }
-.seg-pen    { font-size: clamp(10px, 6.20cqi, 80px); }
-.seg-period { font-size: clamp(9px,  5.80cqi, 75px); }
+/* Digit sizes from the photo's window heights: the clock, scores, shots on
+   goal and player numbers are all much the same size, with the penalty
+   times and the period digit a little smaller. */
+.seg-clock  { font-size: clamp(11px, 8.60cqi, 62px); }
+.seg-score  { font-size: clamp(11px, 8.60cqi, 62px); }
+.seg-sog    { font-size: clamp(11px, 8.60cqi, 62px); }
+.seg-player { font-size: clamp(10px, 8.20cqi, 59px); }
+.seg-pen    { font-size: clamp(9px,  7.40cqi, 53px); }
+.seg-period { font-size: clamp(8px,  6.90cqi, 50px); }
 
 /* ---- Clock window: white-bordered cutout with the maker's mark ---- */
 

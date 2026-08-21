@@ -27,65 +27,55 @@
       <div class="sb-board">
 
         <!-- ---------------- upper band ---------------- -->
+        <!-- Upper band as an explicit 3-row grid, matching the face:
+               row 1  SHOTS ON GOAL captions | logos | clock
+               row 2  team-name message centers (wide, thin, below the clock)
+               row 3  SOG digits | scores | PERIOD | scores | SOG digits
+             The name strips are wider than the score windows and overhang
+             toward the centre, as they do on the board. -->
         <div class="sb-upper">
 
-          <!-- HOME shots on goal (outermost) -->
-          <div class="sb-col sb-col-sog">
-            <div class="sb-cap">Shots<br>on Goal</div>
-            <div class="seg seg-amber seg-sog">
-              <span class="seg-bg">88</span>
-              <span class="seg-fg" id="home-sog">0</span>
+          <div class="sb-cap sb-cap-sog sb-c1">Shots<br>on Goal</div>
+          <div class="sb-logo sb-c2" aria-hidden="true"></div>
+          <div class="sb-clock-window sb-c3">
+            <div class="sb-brand">DAKTRONICS</div>
+            <div class="seg seg-amber seg-clock">
+              <span class="seg-bg" id="time-bg">88:88</span>
+              <span class="seg-fg" id="time">15:00</span>
             </div>
           </div>
+          <div class="sb-logo sb-c4" aria-hidden="true"></div>
+          <div class="sb-cap sb-cap-sog sb-c5">Shots<br>on Goal</div>
 
-          <!-- HOME: logo plaque, team-name message center, score -->
-          <div class="sb-col sb-col-team">
-            <!-- Drop a monogram image in here to match the installed board. -->
-            <div class="sb-logo" aria-hidden="true"></div>
-            <div class="tnmc" aria-label="home team name">
-              <div class="tnmc-matrix" id="home-tnmc"></div>
-            </div>
-            <div class="seg seg-red seg-score">
-              <span class="seg-bg">88</span>
-              <span class="seg-fg" id="home-score">0</span>
-            </div>
+          <div class="tnmc tnmc-home sb-c2" aria-label="home team name">
+            <div class="tnmc-matrix" id="home-tnmc"></div>
+          </div>
+          <div class="tnmc tnmc-guest sb-c4" aria-label="guest team name">
+            <div class="tnmc-matrix" id="guest-tnmc"></div>
           </div>
 
-          <!-- Centre: clock over period -->
-          <div class="sb-col sb-col-center">
-            <div class="sb-clock-window">
-              <div class="sb-brand">DAKTRONICS</div>
-              <div class="seg seg-amber seg-clock">
-                <span class="seg-bg" id="time-bg">88:88</span>
-                <span class="seg-fg" id="time">15:00</span>
-              </div>
-            </div>
+          <div class="seg seg-amber seg-sog sb-c1">
+            <span class="seg-bg">88</span>
+            <span class="seg-fg" id="home-sog">0</span>
+          </div>
+          <div class="seg seg-red seg-score sb-c2">
+            <span class="seg-bg">88</span>
+            <span class="seg-fg" id="home-score">0</span>
+          </div>
+          <div class="sb-period sb-c3">
             <div class="sb-cap sb-cap-period">Period</div>
             <div class="seg seg-amber seg-period">
               <span class="seg-bg">8</span>
               <span class="seg-fg" id="period">1</span>
             </div>
           </div>
-
-          <!-- GUEST: logo plaque, team-name message center, score -->
-          <div class="sb-col sb-col-team">
-            <div class="sb-logo" aria-hidden="true"></div>
-            <div class="tnmc" aria-label="guest team name">
-              <div class="tnmc-matrix" id="guest-tnmc"></div>
-            </div>
-            <div class="seg seg-red seg-score">
-              <span class="seg-bg">88</span>
-              <span class="seg-fg" id="guest-score">0</span>
-            </div>
+          <div class="seg seg-red seg-score sb-c4">
+            <span class="seg-bg">88</span>
+            <span class="seg-fg" id="guest-score">0</span>
           </div>
-
-          <!-- GUEST shots on goal (outermost) -->
-          <div class="sb-col sb-col-sog">
-            <div class="sb-cap">Shots<br>on Goal</div>
-            <div class="seg seg-amber seg-sog">
-              <span class="seg-bg">88</span>
-              <span class="seg-fg" id="guest-sog">0</span>
-            </div>
+          <div class="seg seg-amber seg-sog sb-c5">
+            <span class="seg-bg">88</span>
+            <span class="seg-fg" id="guest-sog">0</span>
           </div>
 
         </div>
@@ -273,6 +263,6 @@
 
   </div>
 
-  <script src="app.js?v=20260820e"></script>
+  <script src="app.js?v=20260820f"></script>
 </body>
 </html>

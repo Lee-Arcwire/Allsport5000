@@ -38,6 +38,25 @@ Daktronics mark over the clock window. HOME is the **left** half.
 Penalty ordering is mirrored: on the home half the player window is outboard
 and the penalty inboard; on the guest half it is the other way round.
 
+Proportions measured off the photo, as a fraction of the board face. Keep
+these in mind before changing the board's CSS — the windows are much closer
+in size than they look, and the name strip is a wide, thin banner:
+
+| Window | width | height |
+|---|---|---|
+| Board face | 100% | 66% (about 1.5 : 1) |
+| Clock | 27% | 17% |
+| Team name strip | 23% | 6% |
+| Team score | 14% | 16% |
+| Shots on goal | 13% | 17% |
+| Player number | 13% | 17% |
+| Penalty time | 20% | 14% |
+| Period | 5% | 13% |
+
+So the name strip is ~1.6× the width of the score window below it and ~0.4×
+its height, and it starts at the clock window's bottom edge, overhanging its
+own column toward the centre of the board.
+
 Not on this board — the console tracks them, but they have nowhere to show:
 **saves**, **time outs left**, penalty indicator lamps, goal lights, and any
 shot-clock display. There are no other units in the installation.
