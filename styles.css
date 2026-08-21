@@ -489,6 +489,12 @@ html, body {
 /* ---- Key deck ---- */
 
 .con-deck {
+  /* Every key cluster reserves the same band above its grid - the height of
+     the HOME / GUEST labels on the insert - so all the key grids start on
+     one line across the deck, as they do on the console face. */
+  --cluster-pad: clamp(3px, 0.6cqi, 8px);
+  --label-h:     clamp(7px, 1.6cqi, 17px);
+  --label-gap:   clamp(2px, 0.4cqi, 5px);
   display: flex;
   align-items: stretch;
   gap: clamp(4px, 1.0cqi, 12px);
@@ -507,7 +513,7 @@ html, body {
   display: flex;
   align-items: stretch;
   gap: clamp(3px, 0.7cqi, 9px);
-  padding: clamp(3px, 0.6cqi, 8px);
+  padding: var(--cluster-pad);
   background: #f4f4f2;
   border: 1px solid #8d9195;
   border-radius: 8px;
@@ -579,17 +585,22 @@ html, body {
 .key-group {
   display: flex;
   flex-direction: column;
-  gap: clamp(2px, 0.4cqi, 5px);
+  gap: var(--label-gap);
 }
 
+/* Fixed height so a group with no label reserves the same band as HOME and
+   GUEST do, instead of letting its keys ride up. */
 .key-group-title {
+  height: var(--label-h);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
   font-size: clamp(5px, 1.12cqi, 12px);
   font-weight: 700;
   letter-spacing: 0.14em;
+  line-height: 1;
   color: var(--con-ink);
-  text-align: center;
   border-bottom: 1px solid var(--con-ink);
-  padding-bottom: 1px;
 }
 .key-group-title-blank { border-bottom-color: transparent; }
 
@@ -601,11 +612,15 @@ html, body {
 
 /* Each insert / standard cluster is a fixed 3-column grid of 4 rows, which
    is how the console face is laid out; empty cells stay empty. */
-#keys-home, #keys-game, #keys-guest, #keys-num { grid-template-columns: repeat(3, 1fr); }
-#keys-teamname                                 { grid-template-columns: repeat(10, 1fr); }
-#keys-nav                                      { grid-template-columns: repeat(3, 1fr); }
-#keys-horn                                     { grid-template-columns: auto 1.6fr; }
-#keys-clock                                    { grid-template-columns: 1fr 1.5fr; }
+/* minmax(0, 1fr) rather than 1fr: a plain 1fr floors at the content's
+   min-width, so the wide captions (CLEAR NO, ENTER YES, MENU) would steal
+   width from their neighbours and leave the middle column pinched. The
+   console's columns are all equal. */
+#keys-home, #keys-game, #keys-guest,
+#keys-num, #keys-nav      { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#keys-teamname            { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+#keys-horn                { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); }
+#keys-clock               { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
 
 /* ---- The insert pull tab ----
    Stands in for the tab that extends from the left side of the console;
@@ -679,7 +694,10 @@ html, body {
 }
 
 .std-block {
-  padding: clamp(2px, 0.5cqi, 6px);
+  /* The extra top padding is the label band, so these grids line up with
+     the insert's. */
+  padding: var(--cluster-pad);
+  padding-top: calc(var(--cluster-pad) + var(--label-h) + var(--label-gap));
   border: 1px solid #75797d;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.10);
@@ -693,7 +711,11 @@ html, body {
   gap: clamp(3px, 0.7cqi, 9px);
   flex: 1 1 auto;
 }
-.std-right .std-block { flex: 1 1 auto; }
+/* The horn cluster is a single row of keys, so it takes only the height it
+   needs and the clock cluster gets the rest - on the console face the clock
+   controls start immediately below the horn row, not halfway down. */
+.std-horn  { flex: 0 0 auto; }
+.std-clock { flex: 1 1 auto; }
 
 /* ---- Key caps ---- */
 
@@ -709,10 +731,12 @@ html, body {
   padding: clamp(1px, 0.25cqi, 3px) clamp(1px, 0.3cqi, 4px);
 
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: clamp(3.6px, 0.82cqi, 9px);
+  /* Tight enough that the longest caption (CLEAR ALL PENALTIES) fits inside
+     an equal-width column without spilling over the key. */
+  font-size: clamp(3.4px, 0.76cqi, 9px);
   font-weight: 600;
   line-height: 1.1;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.015em;
   white-space: pre-line;
   color: var(--key-ink);
 
