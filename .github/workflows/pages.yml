@@ -1,0 +1,46 @@
+name: Deploy to GitHub Pages
+
+# The emulator is a static site (no build step), so the repo root is
+# published as-is. Enable Pages once under Settings -> Pages -> Source:
+# "GitHub Actions", then every push to main redeploys.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a newer push cancel an in-flight deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage the static site
+        # Ship only what the browser needs; the 14 MB reference manual and
+        # the docs/ folder stay out of the deployed artifact.
+        run: |
+          mkdir -p _site
+          cp index.html styles.css app.js _site/
+          cp -r fonts _site/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

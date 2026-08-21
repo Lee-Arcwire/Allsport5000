@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Plain static server on :8000. The app is fonts-local and has no
+      // build step, so this is all that's needed to run it.
+      "label": "serve",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "http.server", "8000"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "runOptions": { "instanceLimit": 1 }
+    },
+    {
+      "label": "syntax check app.js",
+      "type": "shell",
+      "command": "node",
+      "args": ["--check", "app.js"],
+      "problemMatcher": ["$tsc"],
+      "group": { "kind": "test", "isDefault": true }
+    }
+  ]
+}

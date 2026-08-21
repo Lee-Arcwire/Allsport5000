@@ -1,0 +1,652 @@
+/* ====================================================================
+   Daktronics All Sport 5000 hockey console emulator — styles
+
+   Three stacked panels, all sharing one max width:
+     1. scoreboard   — LED digit windows (carried over from the Nevco
+                       emulator as a starting point; field set still to be
+                       reworked for the Daktronics hockey board)
+     2. console top  — 2-line x 16-character green LCD in the chassis band
+     3. console deck — LL-2436 hockey sport insert (left) + the fixed
+                       standard keys (right), drawn as real keys rather
+                       than hotspots over a photo
+
+   Key colours follow the console face: gray caps in a black-outlined
+   cluster, HOME keys ringed green, GUEST ringed red, MENU black,
+   HORN amber, START green, STOP red.
+   ==================================================================== */
+
+* { box-sizing: border-box; }
+
+:root {
+  --panel-max:       1000px;
+
+  --sb-board:        #18345e;
+  --sb-board-edge:   #0a1830;
+  --sb-window-bg:    #02060d;
+  --sb-window-edge:  #0a1426;
+
+  --led-amber-on:    #ff8a20;
+  --led-amber-glow:  rgba(255, 138, 32, 0.45);
+  --led-amber-off:   rgba(255, 138, 32, 0.10);
+
+  --led-red-on:      #ff3a1a;
+  --led-red-glow:    rgba(255, 58, 26, 0.45);
+  --led-red-off:     rgba(255, 58, 26, 0.10);
+
+  /* Console chassis */
+  --con-face:        #b9bcc0;
+  --con-face-hi:     #d6d8db;
+  --con-face-lo:     #8e9296;
+  --con-rail:        #d9dbde;
+  --con-ink:         #101114;
+
+  /* Green backlit character LCD */
+  --lcd-bg:          #7fc242;
+  --lcd-bg-lo:       #6cae36;
+  --lcd-off:         rgba(0, 0, 0, 0.07);
+  --lcd-ink:         #0b1206;
+
+  /* Key caps */
+  --key-face:        #c7cacd;
+  --key-face-hi:     #e4e6e8;
+  --key-face-lo:     #9ea2a6;
+  --key-edge:        #26282b;
+  --key-ink:         #14161a;
+  --key-home:        #1f9d4a;
+  --key-guest:       #cf2027;
+  --key-horn:        #f5c518;
+  --key-start:       #22b04b;
+  --key-stop:        #e8382f;
+  --key-armed:       #ffd34d;
+}
+
+/* Dimming Menu / brightness: dims the scoreboard LED variants. Toggled on
+   <body> by renderConsole() from state.settings.dimming. */
+body.brightness-low {
+  --led-amber-on:    #b66318;
+  --led-amber-glow:  rgba(255, 138, 32, 0.22);
+  --led-red-on:      #a82a14;
+  --led-red-glow:    rgba(255, 58, 26, 0.22);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(ellipse at center, #2a2a30 0%, #0d0d12 70%, #050508 100%);
+  min-height: 100vh;
+  color: #ddd;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  overflow-x: clip;
+}
+
+.app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ==================== SCOREBOARD ==================== */
+
+.scoreboard { display: flex; justify-content: center; }
+
+.sb-board {
+  width: 100%;
+  max-width: var(--panel-max);
+  margin: 0 auto;
+  background:
+    radial-gradient(ellipse at top, #1f4378 0%, var(--sb-board) 55%, #0e2349 100%);
+  border: 3px solid var(--sb-board-edge);
+  border-radius: 4px;
+  padding: clamp(4px, 0.78cqi, 10px) clamp(6px, 1.25cqi, 16px);
+  box-shadow:
+    inset 0 0 60px rgba(0, 0, 0, 0.45),
+    0 8px 24px rgba(0, 0, 0, 0.55);
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  align-items: center;
+  gap: clamp(2px, 0.55cqi, 8px);
+  /* The board sizes its own contents: every digit / tag / gap below is in
+     cqi (1% of board width), so content always fits the chassis. */
+  container-type: inline-size;
+}
+
+/* ---- Digit windows ---- */
+
+.seg {
+  position: relative;
+  display: inline-block;
+  font-family: 'DSEG7 Classic', 'DSEG7Classic', 'Share Tech Mono', monospace;
+  font-weight: 700;
+  line-height: 1;
+  background: var(--sb-window-bg);
+  border: 1px solid var(--sb-window-edge);
+  border-radius: 3px;
+  padding: clamp(1px, 0.4cqi, 4px) clamp(2px, 0.6cqi, 6px);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.95);
+}
+
+.seg-amber {
+  --led-on:   var(--led-amber-on);
+  --led-glow: var(--led-amber-glow);
+  --led-off:  var(--led-amber-off);
+}
+.seg-red {
+  --led-on:   var(--led-red-on);
+  --led-glow: var(--led-red-glow);
+  --led-off:  var(--led-red-off);
+}
+
+.seg-bg { display: inline-block; color: var(--led-off); }
+.seg-fg {
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--led-on);
+  text-shadow:
+    0 0 0.10em var(--led-glow),
+    0 0 0.22em var(--led-glow);
+}
+
+.seg-1     { font-size: clamp(8px,  3.60cqi, 37px); min-width: 0.7em; }
+.seg-2     { font-size: clamp(8px,  3.60cqi, 37px); min-width: 1.4em; }
+.seg-4     { font-size: clamp(7px,  3.13cqi, 32px); min-width: 2.6em; }
+.seg-clock { font-size: clamp(14px, 6.56cqi, 67px); min-width: 2.9em; }
+.seg-score { font-size: clamp(14px, 6.56cqi, 67px); }
+.seg-shot  { font-size: clamp(7px,  2.66cqi, 27px); }
+.sb-period-row .seg-1 { font-size: clamp(8px, 3.28cqi, 34px); }
+
+/* ---- Label plaques ---- */
+
+.sb-tag {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+  font-size: clamp(3px, 1.02cqi, 10px);
+  letter-spacing: 0.01em;
+  color: #f3f3f3;
+  background: #050505;
+  border: 1px solid #1a1a1a;
+  padding: clamp(1px, 0.2cqi, 2px) clamp(2px, 1.0cqi, 10px);
+  border-radius: 2px;
+  text-align: center;
+  white-space: nowrap;
+  align-self: center;
+}
+.sb-tag-team  { font-size: clamp(4px, 1.17cqi, 12px); font-weight: 600; }
+.sb-tag-shots {
+  font-size: clamp(3px, 0.94cqi, 10px);
+  padding: clamp(1px, 0.1cqi, 1px) clamp(2px, 0.8cqi, 8px);
+  margin-top: clamp(1px, 0.4cqi, 4px);
+}
+
+/* ---- Cells & rows ---- */
+
+.sb-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.sb-score-cell { align-items: center; }
+
+.sb-pens {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.78cqi, 10px);
+}
+.sb-pens-home  { margin-right: clamp(6px, 2.0cqi, 22px); }
+.sb-pens-guest { margin-left:  clamp(6px, 2.0cqi, 22px); }
+
+.sb-pen-row {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(2px, 0.78cqi, 10px);
+}
+
+.sb-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+}
+
+.sb-brand-mark {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: clamp(5px, 0.78cqi, 10px);
+  letter-spacing: 0.35em;
+  text-transform: lowercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 2px;
+}
+
+.sb-center-bottom {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(3px, 1.41cqi, 18px);
+  margin-top: 6px;
+}
+
+.sb-period-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.sb-period-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==================== CONSOLE CHASSIS ==================== */
+
+.console {
+  width: 100%;
+  max-width: var(--panel-max);
+  margin: 0 auto;
+  background: linear-gradient(180deg, var(--con-face-hi) 0%, var(--con-face) 45%, var(--con-face-lo) 100%);
+  border: 1px solid #6f7377;
+  border-radius: 14px;
+  padding: clamp(6px, 1.1cqi, 14px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 16px 40px rgba(0, 0, 0, 0.6);
+  /* Console-relative sizing: everything inside scales with the chassis. */
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.2cqi, 14px);
+}
+
+/* ---- Top band: badges + LCD ---- */
+
+.con-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: clamp(6px, 1.5cqi, 18px);
+  padding: clamp(4px, 0.9cqi, 12px) clamp(6px, 1.5cqi, 18px);
+  background: linear-gradient(180deg, #f0f1f2 0%, #dcdee0 100%);
+  border: 1px solid #9aa0a4;
+  border-radius: 8px;
+}
+
+.con-badge-left,
+.con-badge-right {
+  display: flex;
+  flex-direction: column;
+  color: #2c3033;
+  line-height: 1.15;
+}
+.con-badge-right { align-items: flex-end; text-align: right; }
+
+.con-badge-line {
+  font-size: clamp(4px, 0.85cqi, 9px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.con-brand {
+  font-size: clamp(9px, 2.1cqi, 22px);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #16181b;
+}
+.con-brand-tm { font-size: 0.45em; vertical-align: super; }
+.con-model {
+  font-size: clamp(7px, 1.5cqi, 16px);
+  font-weight: 700;
+  color: #16181b;
+}
+.con-sub {
+  font-size: clamp(4px, 0.85cqi, 9px);
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  color: #40454a;
+}
+
+/* ---- The 2 x 16 character LCD ---- */
+
+.lcd {
+  padding: clamp(3px, 0.6cqi, 7px);
+  background: linear-gradient(180deg, #4a4d50 0%, #2b2d30 100%);
+  border: 1px solid #1b1d1f;
+  border-radius: 6px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.lcd-glass {
+  background: linear-gradient(180deg, var(--lcd-bg) 0%, var(--lcd-bg-lo) 100%);
+  border-radius: 3px;
+  padding: clamp(3px, 0.7cqi, 8px) clamp(4px, 1.0cqi, 12px);
+  background-image:
+    repeating-linear-gradient(90deg,
+      var(--lcd-off) 0, var(--lcd-off) 1px, transparent 1px, transparent 6.25%);
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.22),
+    0 0 10px rgba(127, 194, 66, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1px, 0.25cqi, 3px);
+}
+
+.lcd-row { position: relative; }
+
+/* The 16-character ghost sets the row width; the live text overlays it, so
+   the window never reflows as the message changes. */
+.lcd-bg,
+.lcd-fg {
+  font-family: 'Share Tech Mono', 'DSEG14 Classic Mini', monospace;
+  font-size: clamp(9px, 2.05cqi, 21px);
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  line-height: 1.25;
+  white-space: pre;
+}
+/* The ghost is a width strut only - it must not show through the padded
+   spaces of the live string, so it is hidden rather than dimmed. The faint
+   character-cell banding on the glass stands in for the LCD's pixel grid. */
+.lcd-bg { visibility: hidden; }
+.lcd-fg {
+  position: absolute;
+  inset: 0;
+  color: var(--lcd-ink);
+}
+
+/* ---- Key deck ---- */
+
+.con-deck {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(4px, 1.0cqi, 12px);
+  padding: clamp(4px, 0.9cqi, 12px);
+  background: linear-gradient(180deg, #aeb2b6 0%, #9a9ea2 100%);
+  border: 1px solid #7a7e82;
+  border-radius: 8px;
+}
+
+/* Sport insert (LL-2436): legend column + HOME / game / GUEST key groups */
+.insert {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(3px, 0.7cqi, 9px);
+  padding: clamp(3px, 0.6cqi, 8px);
+  background: #f4f4f2;
+  border: 1px solid #8d9195;
+  border-radius: 8px;
+}
+
+.insert-legend {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.5cqi, 6px);
+  color: var(--con-ink);
+  min-width: clamp(52px, 11.5cqi, 118px);
+}
+
+.insert-sport {
+  font-size: clamp(4px, 0.92cqi, 10px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.insert-codes {
+  border-collapse: collapse;
+  font-size: clamp(3.5px, 0.8cqi, 8.5px);
+  font-variant-numeric: tabular-nums;
+}
+.insert-codes th {
+  text-align: left;
+  font-weight: 700;
+  border-bottom: 1px solid var(--con-ink);
+  padding-right: 0.5em;
+}
+.insert-codes td {
+  padding-right: 0.5em;
+  white-space: nowrap;
+  line-height: 1.35;
+}
+.insert-codes tr.active td { font-weight: 800; }
+
+.insert-codebox {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+.insert-codebox-label {
+  font-size: clamp(3.5px, 0.78cqi, 8px);
+  font-weight: 600;
+  line-height: 1.15;
+  border: 1px solid var(--con-ink);
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.insert-codebox-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(6px, 1.35cqi, 14px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.insert-codebox-caption {
+  font-size: clamp(3.5px, 0.78cqi, 8px);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+/* ---- Key groups ---- */
+
+.key-group {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.4cqi, 5px);
+}
+
+.key-group-title {
+  font-size: clamp(5px, 1.12cqi, 12px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--con-ink);
+  text-align: center;
+  border-bottom: 1px solid var(--con-ink);
+  padding-bottom: 1px;
+}
+.key-group-title-blank { border-bottom-color: transparent; }
+
+.key-grid {
+  display: grid;
+  gap: clamp(2px, 0.42cqi, 5px);
+  align-content: start;
+}
+
+/* Each insert / standard cluster is a fixed 3-column grid of 4 rows, which
+   is how the console face is laid out; empty cells stay empty. */
+#keys-home, #keys-game, #keys-guest, #keys-num { grid-template-columns: repeat(3, 1fr); }
+#keys-nav                                      { grid-template-columns: repeat(3, 1fr); }
+#keys-horn                                     { grid-template-columns: auto 1.6fr; }
+#keys-clock                                    { grid-template-columns: 1fr 1.5fr; }
+
+/* ---- Standard-key clusters ---- */
+
+.std {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(3px, 0.7cqi, 9px);
+  flex: 1 1 auto;
+}
+
+.std-block {
+  padding: clamp(2px, 0.5cqi, 6px);
+  border: 1px solid #75797d;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.10);
+  display: flex;
+}
+.std-block .key-grid { flex: 1 1 auto; }
+
+.std-right {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3px, 0.7cqi, 9px);
+  flex: 1 1 auto;
+}
+.std-right .std-block { flex: 1 1 auto; }
+
+/* ---- Key caps ---- */
+
+.key {
+  all: unset;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: clamp(16px, 3.4cqi, 38px);
+  padding: clamp(1px, 0.25cqi, 3px) clamp(1px, 0.3cqi, 4px);
+
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(3.6px, 0.82cqi, 9px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  white-space: pre-line;
+  color: var(--key-ink);
+
+  background: linear-gradient(180deg, var(--key-face-hi) 0%, var(--key-face) 55%, var(--key-face-lo) 100%);
+  border: 1px solid var(--key-edge);
+  border-radius: clamp(2px, 0.5cqi, 6px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.20),
+    0 2px 3px rgba(0, 0, 0, 0.45);
+
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+}
+
+.key:focus-visible { outline: 2px solid #2a6df4; outline-offset: 1px; }
+
+.key:active,
+.key.pressed {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.45),
+    0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+/* A key marked with a dot on the insert needs follow-up entry (number +
+   ENTER); the console prints a small filled circle under the caption. */
+.key-dot::after {
+  content: '';
+  position: absolute;
+  bottom: clamp(1px, 0.25cqi, 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(1.5px, 0.35cqi, 4px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--key-ink);
+}
+
+/* Team rings: HOME keys are outlined green, GUEST red, matching the face. */
+.key-home  { border-color: var(--key-home);  box-shadow: inset 0 0 0 1px var(--key-home),  inset 0 1px 0 rgba(255,255,255,0.55), 0 2px 3px rgba(0,0,0,0.45); }
+.key-guest { border-color: var(--key-guest); box-shadow: inset 0 0 0 1px var(--key-guest), inset 0 1px 0 rgba(255,255,255,0.55), 0 2px 3px rgba(0,0,0,0.45); }
+
+/* Coloured caps */
+.key-menu {
+  background: linear-gradient(180deg, #3a3d41 0%, #14161a 100%);
+  color: #f2f3f5;
+  font-weight: 700;
+}
+.key-horn {
+  background: linear-gradient(180deg, #ffe27a 0%, var(--key-horn) 55%, #d9a908 100%);
+  font-weight: 800;
+}
+.key-start {
+  background: linear-gradient(180deg, #5bdd85 0%, var(--key-start) 55%, #15803d 100%);
+  color: #08210f;
+  font-weight: 800;
+}
+.key-stop {
+  background: linear-gradient(180deg, #ff8a7f 0%, var(--key-stop) 55%, #b21f18 100%);
+  color: #2b0705;
+  font-weight: 800;
+}
+
+/* Arrow caps in the menu-navigation diamond */
+.key-arrow { font-size: clamp(6px, 1.4cqi, 15px); font-weight: 700; }
+
+/* Status LEDs: START carries a green run indicator, HORN an amber
+   auto-horn indicator, exactly as on the console. */
+.key-led::before {
+  content: '';
+  position: absolute;
+  top: clamp(1px, 0.3cqi, 4px);
+  left: clamp(1px, 0.3cqi, 4px);
+  width: clamp(2px, 0.5cqi, 5px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #3d4348;
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.key-led.led-on::before {
+  background: #b6ff6a;
+  box-shadow: 0 0 4px rgba(160, 255, 90, 0.9);
+}
+.key-led.led-amber.led-on::before {
+  background: #ffd24d;
+  box-shadow: 0 0 4px rgba(255, 200, 60, 0.9);
+}
+
+/* Armed: the key whose value the LCD is currently waiting on. */
+.key.armed {
+  background: linear-gradient(180deg, #fff0b8 0%, var(--key-armed) 60%, #d9a908 100%);
+  border-color: #8a6a00;
+}
+
+/* ==================== HELP BANNER ==================== */
+
+.help-banner {
+  width: 100%;
+  max-width: var(--panel-max);
+  margin: 0 auto;
+  text-align: center;
+  font-size: clamp(11px, 1.4vw, 15px);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #c9cdd6;
+  background: linear-gradient(180deg, #1c1c1f 0%, #0e0e10 100%);
+  border: 1px solid #2a2a2e;
+  border-radius: 8px;
+  padding: 10px 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+/* Sizes scale fluidly with the chassis via cqi; below ~720px the deck
+   stops trying to fit the insert and the standard keys side by side. */
+@container (max-width: 720px) {
+  .con-deck { flex-direction: column; }
+  .insert-legend { display: none; }
+}
+
+@media (max-width: 560px) {
+  .app { padding: 10px; }
+  .std { flex-wrap: wrap; }
+}

@@ -1,0 +1,28 @@
+name: CI
+
+# There's no build or test framework yet - this catches the two failures
+# that actually happen in a no-bundler static app: a syntax error in
+# app.js, and an id referenced by app.js that no longer exists in
+# index.html.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax-check app.js
+        run: node --check app.js
+
+      - name: Verify every getElementById target exists in index.html
+        run: node scripts/check-dom-ids.mjs

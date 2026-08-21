@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Starts the "serve" task, then opens the emulator in Chrome with
+      // breakpoints wired to the workspace sources.
+      "name": "Emulator in Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8000/index.html",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "serve"
+    },
+    {
+      "name": "Emulator in Edge",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:8000/index.html",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "serve"
+    }
+  ]
+}

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Sport 5000 Hockey Console Emulator</title>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ============== SCOREBOARD ==============
+         Starting point carried over from the Nevco emulator; the field set
+         and layout still need to be reworked for the Daktronics hockey
+         board this console drives (T.O.L., penalty indicators, saves,
+         team-name message centers). -->
+    <section class="scoreboard" aria-label="hockey scoreboard">
+      <div class="sb-board">
+
+        <!-- Home penalties: outermost column. [player # | penalty time] -->
+        <div class="sb-pens sb-pens-home" aria-label="home penalties">
+          <div class="sb-pen-row">
+            <div class="sb-cell">
+              <div class="sb-tag">player</div>
+              <div class="seg seg-amber seg-2">
+                <span class="seg-bg">88</span>
+                <span class="seg-fg" id="home-pen1-player">--</span>
+              </div>
+            </div>
+            <div class="sb-cell">
+              <div class="sb-tag">penalty</div>
+              <div class="seg seg-red seg-4">
+                <span class="seg-bg">88:88</span>
+                <span class="seg-fg" id="home-pen1-time">0:00</span>
+              </div>
+            </div>
+          </div>
+          <div class="sb-pen-row">
+            <div class="sb-cell">
+              <div class="sb-tag">player</div>
+              <div class="seg seg-amber seg-2">
+                <span class="seg-bg">88</span>
+                <span class="seg-fg" id="home-pen2-player">--</span>
+              </div>
+            </div>
+            <div class="sb-cell">
+              <div class="sb-tag">penalty</div>
+              <div class="seg seg-red seg-4">
+                <span class="seg-bg">88:88</span>
+                <span class="seg-fg" id="home-pen2-time">0:00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Home score -->
+        <div class="sb-cell sb-score-cell">
+          <div class="sb-tag sb-tag-team">Home</div>
+          <div class="seg seg-amber seg-2 seg-score">
+            <span class="seg-bg">88</span>
+            <span class="seg-fg" id="home-score">00</span>
+          </div>
+        </div>
+
+        <!-- Center: clock above, period + shots on goal below. -->
+        <div class="sb-center">
+          <div class="seg seg-red seg-clock">
+            <span class="seg-bg" id="time-bg">88:88</span>
+            <span class="seg-fg" id="time">15:00</span>
+          </div>
+          <div class="sb-brand-mark">daktronics</div>
+          <div class="sb-center-bottom">
+            <div class="seg seg-amber seg-2 seg-shot">
+              <span class="seg-bg">88</span>
+              <span class="seg-fg" id="home-sog">00</span>
+            </div>
+            <div class="sb-period-stack">
+              <div class="sb-period-row">
+                <div class="sb-tag">period</div>
+                <div class="seg seg-amber seg-1">
+                  <span class="seg-bg">8</span>
+                  <span class="seg-fg" id="period">1</span>
+                </div>
+              </div>
+              <div class="sb-tag sb-tag-shots">shots on goal</div>
+            </div>
+            <div class="seg seg-amber seg-2 seg-shot">
+              <span class="seg-bg">88</span>
+              <span class="seg-fg" id="guest-sog">00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guest score -->
+        <div class="sb-cell sb-score-cell">
+          <div class="sb-tag sb-tag-team">Guest</div>
+          <div class="seg seg-amber seg-2 seg-score">
+            <span class="seg-bg">88</span>
+            <span class="seg-fg" id="guest-score">00</span>
+          </div>
+        </div>
+
+        <!-- Guest penalties: mirrored (penalty inside, player outside). -->
+        <div class="sb-pens sb-pens-guest" aria-label="guest penalties">
+          <div class="sb-pen-row">
+            <div class="sb-cell">
+              <div class="sb-tag">penalty</div>
+              <div class="seg seg-red seg-4">
+                <span class="seg-bg">88:88</span>
+                <span class="seg-fg" id="guest-pen1-time">0:00</span>
+              </div>
+            </div>
+            <div class="sb-cell">
+              <div class="sb-tag">player</div>
+              <div class="seg seg-amber seg-2">
+                <span class="seg-bg">88</span>
+                <span class="seg-fg" id="guest-pen1-player">--</span>
+              </div>
+            </div>
+          </div>
+          <div class="sb-pen-row">
+            <div class="sb-cell">
+              <div class="sb-tag">penalty</div>
+              <div class="seg seg-red seg-4">
+                <span class="seg-bg">88:88</span>
+                <span class="seg-fg" id="guest-pen2-time">0:00</span>
+              </div>
+            </div>
+            <div class="sb-cell">
+              <div class="sb-tag">player</div>
+              <div class="seg seg-amber seg-2">
+                <span class="seg-bg">88</span>
+                <span class="seg-fg" id="guest-pen2-player">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============== CONSOLE ==============
+         All Sport 5000 Series control console. Chassis top band carries the
+         2-line x 16-character LCD; the key deck below is the LL-2436
+         Hockey/Lacrosse/Handball sport insert (left) plus the console's
+         fixed standard keys (right). -->
+    <section class="console" aria-label="All Sport 5000 control console">
+
+      <!-- ---- Chassis top band: LCD ---- -->
+      <div class="con-top">
+        <div class="con-badge-left">
+          <span class="con-badge-line">SCAN FOR</span>
+          <span class="con-badge-line">OPERATION</span>
+          <span class="con-badge-line">&amp; SUPPORT</span>
+        </div>
+
+        <div class="lcd" aria-live="polite" aria-label="console LCD">
+          <div class="lcd-glass">
+            <div class="lcd-row">
+              <span class="lcd-bg">8888888888888888</span>
+              <span class="lcd-fg" id="lcd-line1">AS-5000 V1.0.0</span>
+            </div>
+            <div class="lcd-row">
+              <span class="lcd-bg">8888888888888888</span>
+              <span class="lcd-fg" id="lcd-line2">ED-11544</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="con-badge-right">
+          <span class="con-brand">ALL SPORT<span class="con-brand-tm">&reg;</span></span>
+          <span class="con-model">5000 SERIES</span>
+          <span class="con-sub">CONTROL CONSOLE</span>
+        </div>
+      </div>
+
+      <!-- ---- Key deck ---- -->
+      <div class="con-deck">
+
+        <!-- Sport insert: LL-2436 Hockey / Lacrosse / Handball -->
+        <div class="insert" aria-label="LL-2436 hockey insert">
+          <div class="insert-legend">
+            <div class="insert-sport">HOCKEY/ LACROSSE/<br>HANDBALL</div>
+            <table class="insert-codes">
+              <thead><tr><th>CODE</th><th>TYPE</th></tr></thead>
+              <tbody id="insert-codes"></tbody>
+            </table>
+            <div class="insert-codebox">
+              <div class="insert-codebox-label">PLACE CODE<br>LABEL HERE</div>
+              <div class="insert-codebox-num" id="active-code">4402</div>
+              <div class="insert-codebox-caption">ENTER THIS<br>CODE NUMBER</div>
+            </div>
+          </div>
+
+          <div class="key-group key-group-team">
+            <div class="key-group-title">HOME</div>
+            <div class="key-grid" id="keys-home"></div>
+          </div>
+
+          <div class="key-group key-group-game">
+            <div class="key-group-title key-group-title-blank"></div>
+            <div class="key-grid" id="keys-game"></div>
+          </div>
+
+          <div class="key-group key-group-team">
+            <div class="key-group-title">GUEST</div>
+            <div class="key-grid" id="keys-guest"></div>
+          </div>
+        </div>
+
+        <!-- Fixed standard keys -->
+        <div class="std" aria-label="standard keys">
+          <div class="std-block std-numpad">
+            <div class="key-grid" id="keys-num"></div>
+          </div>
+          <div class="std-block std-navpad">
+            <div class="key-grid" id="keys-nav"></div>
+          </div>
+          <div class="std-right">
+            <div class="std-block std-horn">
+              <div class="key-grid" id="keys-horn"></div>
+            </div>
+            <div class="std-block std-clock">
+              <div class="key-grid" id="keys-clock"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============== HELP BANNER ============== -->
+    <footer class="help-banner" id="help-banner">
+      Space = start/stop clock &middot; H = horn (hold) &middot; digits, Enter, Esc drive the keypad
+    </footer>
+
+  </div>
+
+  <script src="app.js?v=20260820b"></script>
+</body>
+</html>

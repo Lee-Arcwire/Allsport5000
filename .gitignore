@@ -1,0 +1,24 @@
+# Node
+node_modules/
+
+# Static bundle (assembled by scripts/, if/when a desktop wrapper is added)
+dist/
+
+# Rust / Tauri build output (reserved for the desktop wrapper)
+src-tauri/target/
+src-tauri/gen/
+
+# Vendor manual: 14.5 MB of third-party copyrighted PDF that the app does not
+# read. Everything the emulator needs is distilled into
+# docs/CONSOLE_REFERENCE.md and the page extracts in docs/reference/.
+allsport500_manual.pdf
+
+# Scratch renders from the manual (see docs/CONSOLE_REFERENCE.md)
+docs/reference/*.tmp.png
+
+# Affinity Designer/Photo lock files
+*.af~lock~
+
+# OS junk
+.DS_Store
+Thumbs.db

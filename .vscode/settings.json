@@ -1,0 +1,33 @@
+{
+  // Static vanilla-JS web app: no build step, no bundler, no framework.
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.rulers": [100],
+  "[javascript]": { "editor.formatOnSave": false },
+  "[html]": { "editor.formatOnSave": false },
+  "[css]": { "editor.formatOnSave": false },
+
+  // app.js is a browser IIFE, not a module - keep the JS/TS server from
+  // flagging browser globals or suggesting module syntax.
+  "javascript.validate.enable": true,
+  "js/ts.implicitProjectConfig.target": "ES2022",
+  "js/ts.implicitProjectConfig.checkJs": false,
+
+  // Live Preview / Live Server: serve the repo root so fonts/ resolves.
+  "livePreview.serverRoot": "",
+  "livePreview.defaultPreviewPath": "/index.html",
+  "liveServer.settings.port": 8000,
+  "liveServer.settings.root": "/",
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "allsport500_manual.pdf": true
+  },
+  "files.associations": {
+    "*.md": "markdown"
+  }
+}
